@@ -1,12 +1,17 @@
 """
 Skills for Project Chimera
 
-This module contains the Skill registry and skill implementations.
+This module contains the Skill registry and all skill implementations.
 """
 
 from typing import Dict, Type
 from .skill_analyze_trends import AnalyzeTrendsSkill
 from .skill_generate_image import GenerateImageSkill
+from .skill_download_youtube import DownloadYoutubeSkill
+from .skill_transcribe_audio import TranscribeAudioSkill
+from .skill_post_content import PostContentSkill
+from .skill_commerce import CommerceSkill
+from .skill_memory import MemorySkill
 
 
 class SkillRegistry:
@@ -18,9 +23,14 @@ class SkillRegistry:
         self._register_default_skills()
     
     def _register_default_skills(self):
-        """Register default skills."""
+        """Register all default skills."""
         self.register("skill_analyze_trends", AnalyzeTrendsSkill)
         self.register("skill_generate_image", GenerateImageSkill)
+        self.register("skill_download_youtube", DownloadYoutubeSkill)
+        self.register("skill_transcribe_audio", TranscribeAudioSkill)
+        self.register("skill_post_content", PostContentSkill)
+        self.register("skill_commerce", CommerceSkill)
+        self.register("skill_memory", MemorySkill)
     
     def register(self, name: str, skill_class: Type):
         """
@@ -51,7 +61,7 @@ class SkillRegistry:
         Returns:
             List of skill names
         """
-        return list(self._keys())
+        return list(self._skills.keys())
     
     def _keys(self):
         """Return skill names iterator."""
