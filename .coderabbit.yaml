@@ -1,78 +1,11 @@
 # CodeRabbit AI Review Configuration
 # Project Chimera - AI Code Review Policy
 
-# Review Configuration
-review:
-  # Enable comprehensive reviews
-  enable_code_review: true
-  
-  # Review settings
-  review_status: true
+language: en
+early_access: false
+
+reviews:
+  profile: "chill"
   high_level_summary: true
-  auto_title_placeholder: true
+  auto_title_placeholder: ""
   collapse_walkthrough: false
-  
-  # What to review
-  review_dry_run: false
-  
-  # Path filters
-  path_filters:
-    exclude:
-      - "**/*.md"
-      - "**/*.txt"
-      - "**/*.json"
-      - "specs/**"
-      - "research/**"
-      - ".cursor/**"
-
-# AI Review Instructions
-ai:
-  # Instructions for the AI reviewer
-  prompt:
-    - "Review the code for alignment with Project Chimera specifications in `specs/`"
-    - "Check that implementation follows the FastRender Swarm Pattern (Planner/Worker/Judge)"
-    - "Verify all external interactions use MCP (Model Context Protocol)"
-    - "Ensure Pydantic is used for all data schemas"
-    - "Check for spec alignment issues"
-    - "Flag any hardcoded values that should be in configuration"
-    - "Verify security best practices for agentic systems"
-
-# Categories of review
-categories:
-  security:
-    level: high
-    config:
-      - "Check for credential exposure"
-      - "Verify environment variable usage"
-      - "Ensure no API keys in code"
-      - "Validate wallet security patterns"
-  
-  spec_alignment:
-    level: high
-    config:
-      - "Verify API contracts match specs/technical.md"
-      - "Check user stories match specs/functional.md"
-      - "Ensure FastRender pattern compliance"
-  
-  quality:
-    level: medium
-    config:
-      - "Check code complexity"
-      - "Verify error handling"
-      - "Ensure test coverage"
-
-# Changelog
-changelog:
-  categories:
-    - title: "Features"
-      labels:
-        - "feat"
-    - title: "Bug Fixes"
-      labels:
-        - "fix"
-    - title: "Spec Alignment"
-      labels:
-        - "spec"
-    - title: "Security"
-      labels:
-        - "security"
