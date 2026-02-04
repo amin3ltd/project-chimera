@@ -33,49 +33,54 @@ class AnalyzeTrendsOutput(BaseModel):
     analysis_metadata: dict = Field(default_factory=dict)
 
 
-# Skill Implementation
-async def analyze_trends(input_data: AnalyzeTrendsInput) -> AnalyzeTrendsOutput:
-    """
-    Analyze content for trending topics.
+class AnalyzeTrendsSkill:
+    """Skill class for trend analysis."""
     
-    This skill queries MCP trend resources and filters results
-    based on relevance scoring.
+    def __init__(self):
+        """Initialize the skill."""
+        self.name = "skill_analyze_trends"
+        self.version = "1.0.0"
     
-    Args:
-        input_data: Content and parameters for trend analysis
+    def execute(self, content: str, platform: str, max_results: int = 10, 
+                min_relevance_score: float = 0.75) -> AnalyzeTrendsOutput:
+        """
+        Analyze content for trending topics.
         
-    Returns:
-        AnalyzeTrendsOutput with identified trends
-    """
-    # TODO: Implement MCP resource calls
-    # 1. Query news://{platform}/trends MCP resource
-    # 2. Filter by min_relevance_score
-    # 3. Sort by score and limit to max_results
-    
-    # Placeholder implementation
-    return AnalyzeTrendsOutput(
-        status="success",
-        trends=[
-            TrendData(topic="AI Agents", score=0.92, velocity="rising"),
-            TrendData(topic="Autonomous Influencers", score=0.85, velocity="rising"),
-        ],
-        analysis_metadata={
-            "content_length": len(input_data.content),
-            "platform": input_data.platform,
-            "processed_at": "2026-02-04T09:55:00Z",
-        }
-    )
+        Args:
+            content: Content to analyze for trends
+            platform: Source platform (twitter, instagram, tiktok)
+            max_results: Maximum number of trends to return
+            min_relevance_score: Minimum relevance threshold
+            
+        Returns:
+            AnalyzeTrendsOutput with identified trends
+        """
+        # TODO: Implement MCP resource calls
+        # 1. Query news://{platform}/trends MCP resource
+        # 2. Filter by min_relevance_score
+        # 3. Sort by score and limit to max_results
+        
+        # Placeholder implementation
+        return AnalyzeTrendsOutput(
+            status="success",
+            trends=[
+                TrendData(topic="AI Agents", score=0.92, velocity="rising"),
+                TrendData(topic="Autonomous Influencers", score=0.85, velocity="rising"),
+            ],
+            analysis_metadata={
+                "content_length": len(content),
+                "platform": platform,
+                "processed_at": "2026-02-04T09:55:00Z",
+            }
+        )
 
 
 if __name__ == "__main__":
     # Test the skill
-    import asyncio
-    
-    test_input = AnalyzeTrendsInput(
+    skill = AnalyzeTrendsSkill()
+    result = skill.execute(
         content="AI is transforming social media marketing with autonomous agents",
         platform="twitter",
         max_results=5
     )
-    
-    result = asyncio.run(analyze_trends(test_input))
     print(result.model_dump_json(indent=2))
