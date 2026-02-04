@@ -57,7 +57,8 @@ A **Skill** is a specific capability package that the agent can invoke. Unlike M
 {
   "content": "string",
   "platform": "twitter | instagram | tiktok",
-  "max_results": "number (default: 10)"
+  "max_results": "number (default: 10)",
+  "min_relevance_score": "number (default: 0.75)"
 }
 ```
 
@@ -71,19 +72,26 @@ A **Skill** is a specific capability package that the agent can invoke. Unlike M
       "score": "number",
       "velocity": "rising | stable | declining"
     }
-  ]
+  ],
+  "analysis_metadata": {}
 }
 ```
 
+**Location**: [`skill_analyze_trends/`](skill_analyze_trends/)
+- [`main.py`](skill_analyze_trends/main.py) - Implementation
+- [`contract.json`](skill_analyze_trends/contract.json) - Contract definition
+
 ### skill_generate_image
-**Purpose**: Generate images using MCP image tools
+**Purpose**: Generate images using MCP image tools with character consistency
 
 **Input**:
 ```json
 {
   "prompt": "string",
   "style": "string (realistic | anime | abstract)",
-  "character_ref": "string (optional)"
+  "character_ref": "string (optional)",
+  "size": "string (default: 1024x1024)",
+  "agent_id": "string"
 }
 ```
 
@@ -92,9 +100,14 @@ A **Skill** is a specific capability package that the agent can invoke. Unlike M
 {
   "status": "success | error",
   "image_url": "string",
-  "generation_id": "string"
+  "generation_id": "string",
+  "generation_metadata": {}
 }
 ```
+
+**Location**: [`skill_generate_image/`](skill_generate_image/)
+- [`main.py`](skill_generate_image/main.py) - Implementation
+- [`contract.json`](skill_generate_image/contract.json) - Contract definition
 
 ### skill_post_content
 **Purpose**: Publish content to social platforms
@@ -118,9 +131,34 @@ A **Skill** is a specific capability package that the agent can invoke. Unlike M
 }
 ```
 
+## Skill Registry
+
+| Skill | Version | Status | MCP Dependencies |
+|-------|---------|--------|------------------|
+| skill_download_youtube | 1.0.0 | Planned | youtube-mcp |
+| skill_transcribe_audio | 1.0.0 | Planned | whisper-mcp |
+| skill_analyze_trends | 1.0.0 | Implemented | news-mcp |
+| skill_generate_image | 1.0.0 | Implemented | ideogram-mcp, midjourney-mcp |
+| skill_post_content | 1.0.0 | Planned | twitter-mcp, instagram-mcp |
+
 ## Adding New Skills
 
 1. Create a new directory: `skills/skill_{name}/`
 2. Add `__init__.py`, `main.py`, and `contract.json`
-3. Register in `skills/registry.json`
-4. Write corresponding tests in `tests/`
+3. Define Input/Output schemas using Pydantic
+4. Register in the table above
+5. Write corresponding tests in `tests/`
+
+## Skill Execution Flow
+
+```
+Planner → Worker → Judge
+              ↓
+        Skill Invocation
+              ↓
+    ┌────────┴────────┐
+    ↓                 ↓
+ MCP Tools        Skills/
+    ↓                 ↓
+ External APIs    Internal Logic
+```

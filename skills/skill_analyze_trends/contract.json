@@ -1,0 +1,57 @@
+{
+  "skill_name": "skill_analyze_trends",
+  "version": "1.0.0",
+  "description": "Analyzes content for trending topics using MCP resources",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "content": {
+        "type": "string",
+        "description": "Content to analyze for trends"
+      },
+      "platform": {
+        "type": "string",
+        "enum": ["twitter", "instagram", "tiktok"],
+        "description": "Source platform"
+      },
+      "max_results": {
+        "type": "integer",
+        "default": 10,
+        "description": "Maximum number of trends to return"
+      },
+      "min_relevance_score": {
+        "type": "number",
+        "default": 0.75,
+        "description": "Minimum relevance threshold"
+      }
+    },
+    "required": ["content", "platform"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": ["success", "error"]
+      },
+      "trends": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "topic": {"type": "string"},
+            "score": {"type": "number", "minimum": 0, "maximum": 1},
+            "velocity": {"type": "string", "enum": ["rising", "stable", "declining"]}
+          }
+        }
+      },
+      "error_message": {"type": "string"},
+      "analysis_metadata": {"type": "object"}
+    },
+    "required": ["status", "trends"]
+  },
+  "mcp_resources": [
+    "news://{platform}/trends"
+  ],
+  "dependencies": []
+}

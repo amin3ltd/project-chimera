@@ -1,0 +1,53 @@
+{
+  "skill_name": "skill_generate_image",
+  "version": "1.0.0",
+  "description": "Generates images with character consistency using MCP tools",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "description": "Image generation prompt"
+      },
+      "style": {
+        "type": "string",
+        "enum": ["realistic", "anime", "abstract"],
+        "default": "realistic"
+      },
+      "character_ref": {
+        "type": "string",
+        "description": "Character reference ID for consistency"
+      },
+      "size": {
+        "type": "string",
+        "default": "1024x1024"
+      },
+      "agent_id": {
+        "type": "string",
+        "description": "ID of the requesting agent"
+      }
+    },
+    "required": ["prompt", "agent_id"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": ["success", "error"]
+      },
+      "image_url": {"type": "string"},
+      "generation_id": {"type": "string"},
+      "error_message": {"type": "string"},
+      "generation_metadata": {"type": "object"}
+    },
+    "required": ["status"]
+  },
+  "mcp_tools": [
+    "mcp-server-ideogram:generate",
+    "mcp-server-midjourney:imagine"
+  ],
+  "dependencies": [
+    "agent_memory"
+  ]
+}
