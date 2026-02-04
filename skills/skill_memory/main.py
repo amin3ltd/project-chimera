@@ -5,8 +5,8 @@ Agent memory management using Weaviate vector database.
 Provides RAG (Retrieval-Augmented Generation) capabilities.
 """
 
-from typing import Optional, list
 from datetime import datetime
+from typing import Optional, List
 from pydantic import BaseModel, Field
 
 
@@ -29,7 +29,7 @@ class MemoryEntry(BaseModel):
     agent_id: str
     content: str
     memory_type: str
-    embedding: Optional[list[float]] = None
+    embedding: Optional[List[float]] = None
     importance_score: float
     created_at: datetime
     metadata: dict = Field(default_factory=dict)
@@ -40,7 +40,7 @@ class MemoryOutput(BaseModel):
     """Output contract for skill_memory"""
     status: str = Field(..., pattern="^(success|error)$")
     message: str
-    memories: list[MemoryEntry] = Field(default_factory=list)
+    memories: List[MemoryEntry] = Field(default_factory=list)
     error_message: Optional[str] = None
 
 
@@ -105,16 +105,6 @@ class MemorySkill:
                memory_type: str, importance_score: float) -> MemoryOutput:
         """Store a memory entry."""
         # TODO: Implement Weaviate storage
-        # self.client.data_object.create(
-        #     class_name="AgentMemory",
-        #     data_object={
-        #         "content": content,
-        #         "agent_id": agent_id,
-        #         "memory_type": memory_type,
-        #         "importance_score": importance_score,
-        #         "created_at": datetime.now().isoformat()
-        #     }
-        # )
         
         entry = MemoryEntry(
             id="mem_001",
@@ -135,16 +125,6 @@ class MemorySkill:
                   limit: int) -> MemoryOutput:
         """Retrieve recent memories by type."""
         # TODO: Implement Weaviate query
-        # result = self.client.query.get(
-        #     "AgentMemory",
-        #     ["content", "memory_type", "importance_score", "created_at"]
-        # ).with_where({
-        #     "operator": "And",
-        #     "operands": [
-        #         {"path": ["agent_id"], "operator": "Equal", "valueString": agent_id},
-        #         {"path": ["memory_type"], "operator": "Equal", "valueString": memory_type}
-        #     ]
-        # }).with_limit(limit).do()
         
         return MemoryOutput(
             status="success",
@@ -156,16 +136,6 @@ class MemorySkill:
                 limit: int) -> MemoryOutput:
         """Semantic search for relevant memories."""
         # TODO: Implement vector search
-        # result = self.client.query.get(
-        #     "AgentMemory",
-        #     ["content", "memory_type", "importance_score", "created_at"]
-        # ).with_near_text({
-        #     "concepts": [query]
-        # }).with_where({
-        #     "path": ["agent_id"],
-        #     "operator": "Equal",
-        #     "valueString": agent_id
-        # }).with_limit(limit).do()
         
         return MemoryOutput(
             status="success",
