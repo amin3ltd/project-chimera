@@ -1,0 +1,37 @@
+# Project Chimera - Cursor Rules
+
+## Project Context
+This is Project Chimera, an Autonomous Influencer Network. The system creates AI agents that research trends, generate content, and manage social media engagement without human intervention.
+
+## Core Architecture
+- **FastRender Swarm Pattern**: Planner → Worker → Judge roles
+- **MCP (Model Context Protocol)**: Universal connectivity layer
+- **Agentic Commerce**: Coinbase AgentKit integration for financial autonomy
+
+## Prime Directive
+**NEVER generate code without checking `specs/` first.** All implementation must align with the specification documents.
+
+## Development Rules
+
+### Before Writing Code
+1. Check `specs/functional.md` for user stories and requirements
+2. Check `specs/technical.md` for API contracts and schemas
+3. Check `specs/_meta.md` for project vision and constraints
+
+### Code Standards
+- Use Pydantic for all data schemas
+- Follow the Planner-Worker-Judge pattern for agent logic
+- All external interactions must go through MCP
+- Write tests before implementation (TDD approach)
+
+### File Locations
+- Specifications: `specs/`
+- Agent Skills: `skills/`
+- Tests: `tests/`
+- Research Notes: `research/`
+
+## Traceability
+When making changes:
+1. Explain your plan before writing code
+2. Reference the relevant spec requirement
+3. Document any deviations from specs
