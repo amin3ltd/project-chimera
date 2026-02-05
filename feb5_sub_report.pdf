@@ -4,24 +4,98 @@
 << /Type /Catalog /Pages 2 0 R >>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
 endobj
 3 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
 4 0 obj
-<< /Length 3323 >>
+<< /Length 3504 >>
 stream
 BT
 /F1 11 Tf
 54 760 Td
-(Feb 5 Submission - Client Email \(<=400 words\)) Tj
+(Feb 5 Submission - Delivery Challenge \(Lemlem\)) Tj
 0 -13 Td
 () Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(**Subject:** Request to time-box Finance vs Delivery reconciliation \(warehouse build\)) Tj
+(Task 1: Data Analysis \(what I noticed in the sample extracts\)) Tj
+0 -13 Td
+(I reviewed the sample Finance payments extract against the Delivery events extract to get) Tj
+0 -13 Td
+(familiar with the data and identify why deeper analysis is needed before I lock "truth" into) Tj
+0 -13 Td
+(the warehouse. The mismatches fall into a few distinct types:) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(1\) **Duplicate / replayed finance payments \(double-count risk\)**) Tj
+0 -13 Td
+(      - Example: `O5006/PK9006` appears twice as PAID for 800 ETB \(`P1006` and `P1021`\).) Tj
+0 -13 Td
+(      - Example: `O5014/PK9014` appears twice as PAID for 530 ETB \(`P1014` and `P1022`\).) Tj
+0 -13 Td
+(   If these are retries, corrections, or system replays, I need a deduplication rule \(and a) Tj
+0 -13 Td
+(   definition of a "unique payment"\).) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(2\) **Missing / incomplete join keys \(unmatchable records\)**) Tj
+0 -13 Td
+(      - Example: `P1023` \(`O5021`\) is PAID for 500 ETB but has a blank `package_id`.) Tj
+0 -13 Td
+(   Without consistent keys \(order/package/customer\), Finance rows cannot reliably link to) Tj
+0 -13 Td
+(   Delivery.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(3\) **Lifecycle / coverage gaps between systems**) Tj
+0 -13 Td
+(   - Example: Finance has `O5023/PK9023` PAID 750 ETB \(`P1025`\), but there is no corresponding) Tj
+0 -13 Td
+(   Delivery event in the provided Delivery extract.) Tj
+0 -13 Td
+(   - Example: Finance shows `O5022/PK9022` as REFUNDED 600 ETB \(`P1024`\), but there is no Delivery) Tj
+0 -13 Td
+(   event for PK9022 in the extract.) Tj
+0 -13 Td
+(   This could be incomplete extracts, late-arriving delivery events, cancellations, or true) Tj
+0 -13 Td
+(   process exceptions.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(4\) **Definition mismatches \(PAID != DELIVERED\)**) Tj
+0 -13 Td
+(      - Example: `O5016/PK9016` is PAID 770 ETB but Delivery is `FAILED` \(D2016\).) Tj
+0 -13 Td
+(      - Example: `O5020/PK9020` is PAID 460 ETB but Delivery is `RETURNED` \(D2020\).) Tj
+0 -13 Td
+(   I need client agreement on how reporting should treat failed/returned shipments and how refunds) Tj
+0 -13 Td
+(   map to operational outcomes.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(5\) **Timing / reporting-window differences**) Tj
+0 -13 Td
+(   - Example: payment recorded 2026-01-10 for `O5006/PK9006`, but delivery event is 2026-02-01) Tj
+0 -13 Td
+(   \(D2006\).) Tj
+0 -13 Td
+(   This will create month-end drift if Finance is reported by `payment_date` and Delivery is) Tj
+0 -13 Td
+(   reported by `event_time`.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Task 2: Client-ready email \(<=400 words, contents only\)) Tj
+0 -13 Td
+(**Subject:** Request to time-box Finance vs Delivery reconciliation before warehouse metrics) Tj
 0 -13 Td
 () Tj
 0 -13 Td
@@ -29,71 +103,80 @@ BT
 0 -13 Td
 () Tj
 0 -13 Td
-(As part of our validation while building the centralized data warehouse, we performed an) Tj
+(I'm building the centralized warehouse and ran an initial reconciliation between the Finance) Tj
 0 -13 Td
-(initial reconciliation between the Finance payments data and the Delivery status data. We're) Tj
+(payments extract and the Delivery events extract. Totals and counts do not fully tie out) Tj
 0 -13 Td
-(seeing **differences in counts and totals** that prevent a reliable tie-out between financial) Tj
-0 -13 Td
-(activity \(e.g., "paid"\) and operational outcomes \(e.g., "delivered"\).) Tj
+(between "paid" activity in Finance and "delivered" outcomes in Delivery.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(At this stage, the root cause is **not yet confirmed**. In legacy environments with multiple) Tj
+(I do not yet have a confirmed root cause. Based on the sample extracts, I am seeing several) Tj
 0 -13 Td
-(source systems and evolving processes, these gaps are commonly driven by a few categories of) Tj
-0 -13 Td
-(issues. Examples of what we are seeing patterns consistent with include:) Tj
-0 -13 Td
-(* **Duplicate/replayed transactions** \(e.g., retries or multiple records for the same business) Tj
-0 -13 Td
-(event\), which can inflate Finance totals if not deduplicated correctly.) Tj
-0 -13 Td
-(* **Missing/inconsistent join keys** across systems \(e.g., an identifier present in Finance but) Tj
-0 -13 Td
-(absent or formatted differently in Delivery\), which makes certain records unmatchable.) Tj
-0 -13 Td
-(* **Timing differences** between when a payment is recorded and when delivery events are) Tj
-0 -13 Td
-(recorded \(late-arriving updates, month-end cutoffs\).) Tj
-0 -13 Td
-(* **Definition mismatches** \(e.g., how to treat returns, failed deliveries, and refunds when) Tj
-0 -13 Td
-(reporting "revenue" vs "successful delivery"\).) Tj
+(specific issue types that could each explain part of the gap:) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(To avoid embedding incorrect assumptions into the warehouse and later having to rework) Tj
+(* **Duplicate/replayed payments:** the same order/package appears twice as PAID with the same) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 2000 >>
+stream
+BT
+/F1 11 Tf
+54 760 Td
+(amount/date \(for example `O5006/PK9006` shows 800 ETB PAID in both `P1006` and `P1021`;) Tj
 0 -13 Td
-(executive reporting, I recommend a **time-boxed reconciliation investigation \(1-2 business) Tj
+(`O5014/PK9014` shows 530 ETB PAID in `P1014` and `P1022`\). I need your guidance on what) Tj
 0 -13 Td
-(days\)** to produce a short decision memo that includes:) Tj
+(constitutes a "unique payment" and how retries/corrections should be treated.) Tj
 0 -13 Td
-(1\) agreed metric definitions \("paid," "delivered," "returned/refunded," etc.\),) Tj
+(* **Missing join keys:** `P1023` \(`O5021`\) is PAID 500 ETB but has a blank `package_id`, which) Tj
 0 -13 Td
-(2\) deduplication + join rules \(which keys, which priority, how to handle exceptions\),) Tj
+(makes it unmatchable to Delivery without a mapping rule.) Tj
 0 -13 Td
-(3\) a documented set of known exceptions and how they will appear in dashboards.) Tj
+(* **Operational outcome differences:** some PAID items are not delivered \(e.g., `O5016/PK9016`) Tj
+0 -13 Td
+(is `FAILED`; `O5020/PK9020` is `RETURNED`\). I need agreement on definitions: whether reporting) Tj
+0 -13 Td
+(should count these as revenue, exclude them, or treat them as exceptions pending) Tj
+0 -13 Td
+(re-ship/refund.) Tj
+0 -13 Td
+(* **Timing differences:** at least one case is paid in January but delivered in February) Tj
+0 -13 Td
+(\(`O5006/PK9006` paid 2026-01-10; delivered 2026-02-01\), which affects period-based reporting.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(To avoid embedding incorrect assumptions into executive dashboards, I recommend a **time-boxed) Tj
+0 -13 Td
+(1-2 business day reconciliation** to confirm drivers and lock reporting rules. Deliverable: a) Tj
+0 -13 Td
+(short decision memo covering \(1\) definitions, \(2\) deduplication + join rules, and \(3\) how) Tj
+0 -13 Td
+(exceptions \(failed/returned/refunded/late\) will appear in metrics.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
 (**Options:**) Tj
 0 -13 Td
-(* **Option A \(recommended\):** Approve the 1-2 day time-box now to confirm drivers and lock) Tj
+(* **Option A \(recommended\):** approve the 1-2 day time-box now.) Tj
 0 -13 Td
-(reporting rules before we publish metrics from the warehouse.) Tj
+(* **Option B:** proceed on schedule with provisional rules \(higher risk of later rework and) Tj
 0 -13 Td
-(* **Option B:** Continue on schedule with provisional rules, accepting higher risk of later) Tj
-0 -13 Td
-(rework and reporting disputes.) Tj
+(reporting disputes\).) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(If you approve **Option A**, could you please nominate one point person from Finance and one) Tj
+(Please confirm whether I can proceed with **Option A**, and nominate one Finance and one) Tj
 0 -13 Td
-(from Delivery for a short working session? We will share the memo and implementation rules) Tj
-0 -13 Td
-(immediately after the time-box concludes.) Tj
+(Delivery point person for a short working session.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
@@ -101,35 +184,25 @@ BT
 0 -13 Td
 (Lemlem) Tj
 0 -13 Td
-(Data Engineering) Tj
-0 -13 Td
-() Tj
-0 -13 Td
-(```) Tj
-0 -13 Td
-(Finance \(payments\) --[keys + rules]--> Delivery \(status events\)) Tj
-0 -13 Td
-(                  duplicates | missing keys | timing cutoffs | definition drift) Tj
-0 -13 Td
-(```) Tj
-0 -13 Td
 () Tj
 ET
 endstream
 endobj
-5 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
 endobj
 xref
-0 6
+0 8
 0000000000 65535 f 
 0000000015 00000 n 
 0000000064 00000 n 
-0000000121 00000 n 
-0000000191 00000 n 
-0000003566 00000 n 
+0000000127 00000 n 
+0000000197 00000 n 
+0000003753 00000 n 
+0000003879 00000 n 
+0000005931 00000 n 
 trailer
-<< /Size 6 /Root 1 0 R >>
+<< /Size 8 /Root 1 0 R >>
 startxref
-3692
+6057
 %%EOF

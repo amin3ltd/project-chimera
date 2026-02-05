@@ -1,34 +1,53 @@
-# Feb 5 Submission — Client Email (≤400 words)
+# Feb 5 Submission — Delivery Challenge (Lemlem)
 
-**Subject:** Request to time-box Finance vs Delivery reconciliation (warehouse build)
+## Task 1: Data Analysis (what I noticed in the sample extracts)
+I reviewed the sample Finance payments extract against the Delivery events extract to get familiar with the data and identify why deeper analysis is needed before I lock “truth” into the warehouse. The mismatches fall into a few distinct types:
+
+1) **Duplicate / replayed finance payments (double-count risk)**  
+   - Example: `O5006/PK9006` appears twice as PAID for 800 ETB (`P1006` and `P1021`).  
+   - Example: `O5014/PK9014` appears twice as PAID for 530 ETB (`P1014` and `P1022`).  
+   If these are retries, corrections, or system replays, I need a deduplication rule (and a definition of a “unique payment”).
+
+2) **Missing / incomplete join keys (unmatchable records)**  
+   - Example: `P1023` (`O5021`) is PAID for 500 ETB but has a blank `package_id`.  
+   Without consistent keys (order/package/customer), Finance rows cannot reliably link to Delivery.
+
+3) **Lifecycle / coverage gaps between systems**  
+   - Example: Finance has `O5023/PK9023` PAID 750 ETB (`P1025`), but there is no corresponding Delivery event in the provided Delivery extract.  
+   - Example: Finance shows `O5022/PK9022` as REFUNDED 600 ETB (`P1024`), but there is no Delivery event for PK9022 in the extract.  
+   This could be incomplete extracts, late-arriving delivery events, cancellations, or true process exceptions.
+
+4) **Definition mismatches (PAID ≠ DELIVERED)**  
+   - Example: `O5016/PK9016` is PAID 770 ETB but Delivery is `FAILED` (D2016).  
+   - Example: `O5020/PK9020` is PAID 460 ETB but Delivery is `RETURNED` (D2020).  
+   I need client agreement on how reporting should treat failed/returned shipments and how refunds map to operational outcomes.
+
+5) **Timing / reporting-window differences**  
+   - Example: payment recorded 2026‑01‑10 for `O5006/PK9006`, but delivery event is 2026‑02‑01 (D2006).  
+   This will create month-end drift if Finance is reported by `payment_date` and Delivery is reported by `event_time`.
+
+## Task 2: Client-ready email (≤400 words, contents only)
+**Subject:** Request to time-box Finance vs Delivery reconciliation before warehouse metrics
 
 Hi [Client Team],
 
-As part of our validation while building the centralized data warehouse, we performed an initial reconciliation between the Finance payments data and the Delivery status data. We’re seeing **differences in counts and totals** that prevent a reliable tie-out between financial activity (e.g., “paid”) and operational outcomes (e.g., “delivered”).
+I’m building the centralized warehouse and ran an initial reconciliation between the Finance payments extract and the Delivery events extract. Totals and counts do not fully tie out between “paid” activity in Finance and “delivered” outcomes in Delivery.
 
-At this stage, the root cause is **not yet confirmed**. In legacy environments with multiple source systems and evolving processes, these gaps are commonly driven by a few categories of issues. Examples of what we are seeing patterns consistent with include:
-- **Duplicate/replayed transactions** (e.g., retries or multiple records for the same business event), which can inflate Finance totals if not deduplicated correctly.
-- **Missing/inconsistent join keys** across systems (e.g., an identifier present in Finance but absent or formatted differently in Delivery), which makes certain records unmatchable.
-- **Timing differences** between when a payment is recorded and when delivery events are recorded (late-arriving updates, month-end cutoffs).
-- **Definition mismatches** (e.g., how to treat returns, failed deliveries, and refunds when reporting “revenue” vs “successful delivery”).
+I do not yet have a confirmed root cause. Based on the sample extracts, I am seeing several specific issue types that could each explain part of the gap:
 
-To avoid embedding incorrect assumptions into the warehouse and later having to rework executive reporting, I recommend a **time-boxed reconciliation investigation (1–2 business days)** to produce a short decision memo that includes:
-1) agreed metric definitions (“paid,” “delivered,” “returned/refunded,” etc.),  
-2) deduplication + join rules (which keys, which priority, how to handle exceptions),  
-3) a documented set of known exceptions and how they will appear in dashboards.
+- **Duplicate/replayed payments:** the same order/package appears twice as PAID with the same amount/date (for example `O5006/PK9006` shows 800 ETB PAID in both `P1006` and `P1021`; `O5014/PK9014` shows 530 ETB PAID in `P1014` and `P1022`). I need your guidance on what constitutes a “unique payment” and how retries/corrections should be treated.
+- **Missing join keys:** `P1023` (`O5021`) is PAID 500 ETB but has a blank `package_id`, which makes it unmatchable to Delivery without a mapping rule.
+- **Operational outcome differences:** some PAID items are not delivered (e.g., `O5016/PK9016` is `FAILED`; `O5020/PK9020` is `RETURNED`). I need agreement on definitions: whether reporting should count these as revenue, exclude them, or treat them as exceptions pending re-ship/refund.
+- **Timing differences:** at least one case is paid in January but delivered in February (`O5006/PK9006` paid 2026‑01‑10; delivered 2026‑02‑01), which affects period-based reporting.
 
-**Options:**
-- **Option A (recommended):** Approve the 1–2 day time-box now to confirm drivers and lock reporting rules before we publish metrics from the warehouse.
-- **Option B:** Continue on schedule with provisional rules, accepting higher risk of later rework and reporting disputes.
+To avoid embedding incorrect assumptions into executive dashboards, I recommend a **time-boxed 1–2 business day reconciliation** to confirm drivers and lock reporting rules. Deliverable: a short decision memo covering (1) definitions, (2) deduplication + join rules, and (3) how exceptions (failed/returned/refunded/late) will appear in metrics.
 
-If you approve **Option A**, could you please nominate one point person from Finance and one from Delivery for a short working session? We will share the memo and implementation rules immediately after the time-box concludes.
+**Options:**  
+- **Option A (recommended):** approve the 1–2 day time-box now.  
+- **Option B:** proceed on schedule with provisional rules (higher risk of later rework and reporting disputes).
+
+Please confirm whether I can proceed with **Option A**, and nominate one Finance and one Delivery point person for a short working session.
 
 Thanks,  
-Lemlem  
-Data Engineering
-
-```
-Finance (payments) --[keys + rules]--> Delivery (status events)
-         duplicates | missing keys | timing cutoffs | definition drift
-```
+Lemlem
 

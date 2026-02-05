@@ -45,6 +45,7 @@ def text_to_simple_pdf(text: str, out_path: Path) -> None:
     text = (
         text.replace("\u2014", "-")
         .replace("\u2013", "-")
+        .replace("\u2011", "-")
         .replace("\u2019", "'")
         .replace("\u2018", "'")
         .replace("\u201c", '"')
