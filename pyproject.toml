@@ -29,7 +29,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["project_chimera", "services", "skills"]
+packages = ["project_chimera", "services", "skills", "schemas", "mcp_servers"]
 
 [tool.black]
 line-length = 100
