@@ -125,7 +125,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
 endobj
 6 0 obj
-<< /Length 3405 >>
+<< /Length 3311 >>
 stream
 BT
 /F1 11 Tf
@@ -146,93 +146,93 @@ BT
 0 -13 Td
 () Tj
 0 -13 Td
-(What We Observed \(High Level\)) Tj
+(Task 1: Data Analysis \(Findings from the sample extracts\)) Tj
 0 -13 Td
-(During initial reconciliation checks \(using sample extracts as a stand-in for the broader) Tj
+(I reviewed the sample Finance payments extract against the Delivery status extract to) Tj
 0 -13 Td
-(legacy landscape\), the types of mismatches that commonly appear include:) Tj
-0 -13 Td
-(* **Data quality issues**: missing/blank join keys, duplicate transaction rows, inconsistent) Tj
-0 -13 Td
-(identifiers across systems) Tj
-0 -13 Td
-(* **Timing/reporting differences**: payments recorded in one period while delivery events land) Tj
-0 -13 Td
-(in another; late-arriving events) Tj
-0 -13 Td
-(* **Definition mismatches**: "paid" vs "delivered" vs "completed" are not necessarily) Tj
-0 -13 Td
-(equivalent business events) Tj
-0 -13 Td
-(* **Process/system inconsistencies**: retries, partial captures/refunds, re-shipments, returns,) Tj
-0 -13 Td
-(and operational overrides) Tj
+(understand how the two datasets relate and what could prevent reconciliation at scale.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(These are normal in legacy environments with many contributors, but they must be resolved \(or) Tj
+(**Note:** This section is **internal working analysis** \(not intended to be sent to the) Tj
 0 -13 Td
-(explicitly modeled\) to avoid downstream reporting disputes.) Tj
-0 -13 Td
-() Tj
-0 -13 Td
-(Client Update Draft \(Request for Time-Boxed Reconciliation Investigation\)) Tj
-0 -13 Td
-(**Subject:** Request to time-box reconciliation of Finance vs Delivery metrics) Tj
+(client\). The client-facing content is in Task 2.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(Hi [Client Name/Team],) Tj
+(### 1\) Duplicate or replayed Finance records \(double-count risk\)) Tj
+0 -13 Td
+(Some orders/packages appear twice in Finance with the same amount/date/status, which inflates) Tj
+0 -13 Td
+(totals if summed naively.) Tj
+0 -13 Td
+(* Example patterns observed: same `order_id` + `package_id` + `payment_date` + `amount` +) Tj
+0 -13 Td
+(`payment_status` repeating with different `payment_id`.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(As part of our ongoing validation while building the centralized data warehouse, we ran an) Tj
+(### 2\) Missing or incomplete join keys \(unmatchable records\)) Tj
 0 -13 Td
-(initial reconciliation between the Finance payments dataset and the Delivery status dataset.) Tj
+(Finance contains at least one row where `package_id` is blank. If Delivery joins rely on) Tj
 0 -13 Td
-(We're seeing **small but material differences** in counts and totals that prevent a clean) Tj
-0 -13 Td
-(tie-out between "paid" and "delivered" outcomes.) Tj
+(`order_id + package_id`, these rows cannot reconcile until the key is corrected or mapped.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(At this point, the **root cause is not yet clear**. Common explanations in systems like this) Tj
+(### 3\) Timing / reporting window differences \(month boundary drift\)) Tj
 0 -13 Td
-(include:) Tj
+(Several deliveries occur days later \(e.g., paid in late January, delivered in early February\).) Tj
 0 -13 Td
-(* Duplicate or retried transactions \(e.g., multiple payment attempts for the same order\)) Tj
+(Monthly reporting will diverge if Finance is grouped by `payment_date` while Delivery is) Tj
 0 -13 Td
-(* Missing or inconsistent identifiers used to link Finance and Delivery records) Tj
-0 -13 Td
-(* Timing differences between when a payment is recorded vs when a delivery event is recorded) Tj
-0 -13 Td
-(\(month-end and late-arriving updates\)) Tj
-0 -13 Td
-(* Definition differences \(e.g., paid vs delivered vs returned/refunded vs failed\)) Tj
+(grouped by `event_time`.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(Importantly, there is **no evidence of wrongdoing**-this appears consistent with typical) Tj
+(### 4\) Definition mismatches \(paid != delivered\)) Tj
 0 -13 Td
-(legacy-system behavior and reporting logic drift over time. However, if we proceed without) Tj
+(Delivery includes non-delivery outcomes \(`FAILED`, `RETURNED`\). If Finance reports "PAID" and) Tj
 0 -13 Td
-(alignment, the warehouse could hard-code assumptions that later cause executive reporting) Tj
+(Delivery reports "DELIVERED," these won't tie out without agreed business rules \(e.g., whether) Tj
 0 -13 Td
-(disagreements.) Tj
-0 -13 Td
-() Tj
-0 -13 Td
-(**Request:** We'd like your agreement to allocate a **time-boxed 1-2 business days** \(or) Tj
-0 -13 Td
-(equivalent effort\) to isolate and document the discrepancy drivers and agree on the) Tj
-0 -13 Td
-("source-of-truth" definitions and join rules. This will allow us to move forward with) Tj
-0 -13 Td
-(confidence and avoid rework.) Tj
+(to exclude returns, whether failures are re-shipped, etc.\).) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(**Proposed approach \(time-boxed\):**) Tj
+(### 5\) Lifecycle gaps \(present in one system, missing in the other\)) Tj
+0 -13 Td
+(The sample includes payments for orders/packages that do not appear in the Delivery extract and) Tj
+0 -13 Td
+(vice versa \(depending on extract completeness\). In a warehouse, we need to know whether that) Tj
+0 -13 Td
+(represents:) Tj
+0 -13 Td
+(* late-arriving data,) Tj
+0 -13 Td
+(* true process exceptions,) Tj
+0 -13 Td
+(* or extract/ETL coverage gaps.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(**Conclusion:** These are all plausible "normal" causes in legacy systems, but they must be) Tj
+0 -13 Td
+(explicitly resolved and documented so the warehouse metrics are trusted and repeatable.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Task 2: Communication \(client-ready message contents, <=400 words\)) Tj
+0 -13 Td
+(**Subject:** Request to time-box Finance vs Delivery reconciliation before warehouse sign-off) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Hi [Client Team],) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(As part of validation for the centralized data warehouse, we ran an initial reconciliation) Tj
 ET
 endstream
 endobj
@@ -240,42 +240,76 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
 endobj
 8 0 obj
-<< /Length 1610 >>
+<< /Length 3266 >>
 stream
 BT
 /F1 11 Tf
 54 760 Td
-(1. **Define reconciliation rules** with Finance + Delivery stakeholders \(30-60 minutes\)) Tj
+(between the Finance payments extract and the Delivery status extract. We're seeing) Tj
 0 -13 Td
-(      - What constitutes a unique payment? How to treat retries/partials/refunds?) Tj
+(**differences in totals and counts** that prevent a clean tie-out between "paid" activity in) Tj
 0 -13 Td
-(      - What constitutes a successful delivery? How to treat returns/failures/re-shipments?) Tj
-0 -13 Td
-(2. **Run targeted checks** across the legacy extracts \(same day\)) Tj
-0 -13 Td
-(      - Duplicates, missing keys, late events, status transitions) Tj
-0 -13 Td
-(3. **Decision memo** \(same or next day\)) Tj
-0 -13 Td
-(      - Final definitions, mapping rules, known exceptions, and any gaps to track) Tj
+(Finance and "delivered" outcomes in Delivery.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(**Decision needed from you:** Please confirm whether you prefer:) Tj
+(At this stage, the root cause is **not yet confirmed**. Based on what we see so far, the gaps) Tj
 0 -13 Td
-(* **Option A \(recommended\):** Approve the 1-2 day time-box now to resolve and document) Tj
+(are consistent with common legacy-system patterns such as:) Tj
 0 -13 Td
-(reconciliation rules, or) Tj
+(* **Duplicate/replayed payments** \(same order/package/amount/date appearing more than once\),) Tj
 0 -13 Td
-(* **Option B:** Proceed on schedule with provisional rules \(we can do this, but it increases) Tj
+(which can inflate Finance totals if not deduplicated.) Tj
 0 -13 Td
-(the risk of later rework and metric disputes\).) Tj
+(* **Missing or inconsistent join keys** \(e.g., a blank `package_id`\), which makes some Finance) Tj
+0 -13 Td
+(records unmatchable to Delivery.) Tj
+0 -13 Td
+(* **Timing differences** \(e.g., paid late in month, delivered early next month\), which causes) Tj
+0 -13 Td
+(month-end drift depending on which timestamp is used.) Tj
+0 -13 Td
+(* **Definition differences** \(e.g., Finance "PAID" vs Delivery outcomes like) Tj
+0 -13 Td
+(`FAILED`/`RETURNED`\), which require agreed business rules for reporting.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
-(If you approve Option A, we will share a short memo and proposed implementation rules) Tj
+(To avoid locking incorrect assumptions into the warehouse, we recommend a **time-boxed) Tj
 0 -13 Td
-(immediately after the time-box completes.) Tj
+(reconciliation investigation \(1-2 business days\)** to produce a short decision memo with:) Tj
+0 -13 Td
+(1\) agreed metric definitions \("paid," "delivered," "returned/refunded," etc.\),) Tj
+0 -13 Td
+(2\) deduplication + join keys/rules,) Tj
+0 -13 Td
+(3\) a small set of known exceptions \(and how they will show up in dashboards\).) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(**Options:**) Tj
+0 -13 Td
+(* **Option A \(recommended\):** Approve the 1-2 day time-box now to confirm root causes and) Tj
+0 -13 Td
+(finalize rules before we publish executive metrics.) Tj
+0 -13 Td
+(* **Option B:** Continue on the current schedule with provisional rules \(higher risk of later) Tj
+0 -13 Td
+(rework and reporting disputes\).) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(**Recommendation:** Option A. This is the smallest investment that materially reduces the risk) Tj
+0 -13 Td
+(of stakeholder misalignment later.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Please confirm whether we can proceed with **Option A** and identify 1 Finance + 1 Delivery) Tj
+0 -13 Td
+(point person for a short working session. If approved, we will share the memo and) Tj
+0 -13 Td
+(implementation rules immediately after the time-box ends.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
@@ -284,6 +318,20 @@ BT
 (Lemlem) Tj
 0 -13 Td
 (Data Engineering) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(### Simple diagram \(how reconciliation breaks\)) Tj
+0 -13 Td
+(```) Tj
+0 -13 Td
+(Finance \(payments\) --\(order_id + package_id + rules\)--> Delivery \(status events\)) Tj
+0 -13 Td
+(          | duplicate rows / missing keys / timing drift / status definitions |) Tj
+0 -13 Td
+(          +------------------------ causes mismatch --------------------------+) Tj
+0 -13 Td
+(```) Tj
 0 -13 Td
 () Tj
 0 -13 Td
@@ -315,11 +363,11 @@ xref
 0000000203 00000 n 
 0000003877 00000 n 
 0000004003 00000 n 
-0000007460 00000 n 
-0000007586 00000 n 
-0000009248 00000 n 
+0000007366 00000 n 
+0000007492 00000 n 
+0000010810 00000 n 
 trailer
 << /Size 10 /Root 1 0 R >>
 startxref
-9374
+10936
 %%EOF

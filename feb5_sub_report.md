@@ -32,50 +32,68 @@ There is no evidence of wrongdoing, yet.
 
 Your manager asks you to draft a client update to ask for agreement to allocate some time to look into the discrepancies.
 
-## What We Observed (High Level)
-During initial reconciliation checks (using sample extracts as a stand-in for the broader legacy landscape), the types of mismatches that commonly appear include:
-- **Data quality issues**: missing/blank join keys, duplicate transaction rows, inconsistent identifiers across systems
-- **Timing/reporting differences**: payments recorded in one period while delivery events land in another; late-arriving events
-- **Definition mismatches**: “paid” vs “delivered” vs “completed” are not necessarily equivalent business events
-- **Process/system inconsistencies**: retries, partial captures/refunds, re-shipments, returns, and operational overrides
+## Task 1: Data Analysis (Findings from the sample extracts)
+I reviewed the sample Finance payments extract against the Delivery status extract to understand how the two datasets relate and what could prevent reconciliation at scale.
 
-These are normal in legacy environments with many contributors, but they must be resolved (or explicitly modeled) to avoid downstream reporting disputes.
+**Note:** This section is **internal working analysis** (not intended to be sent to the client). The client-facing content is in Task 2.
 
-## Client Update Draft (Request for Time-Boxed Reconciliation Investigation)
-**Subject:** Request to time-box reconciliation of Finance vs Delivery metrics
+### 1) Duplicate or replayed Finance records (double-count risk)
+Some orders/packages appear twice in Finance with the same amount/date/status, which inflates totals if summed naively.
+- Example patterns observed: same `order_id` + `package_id` + `payment_date` + `amount` + `payment_status` repeating with different `payment_id`.
 
-Hi [Client Name/Team],
+### 2) Missing or incomplete join keys (unmatchable records)
+Finance contains at least one row where `package_id` is blank. If Delivery joins rely on `order_id + package_id`, these rows cannot reconcile until the key is corrected or mapped.
 
-As part of our ongoing validation while building the centralized data warehouse, we ran an initial reconciliation between the Finance payments dataset and the Delivery status dataset. We’re seeing **small but material differences** in counts and totals that prevent a clean tie-out between “paid” and “delivered” outcomes.
+### 3) Timing / reporting window differences (month boundary drift)
+Several deliveries occur days later (e.g., paid in late January, delivered in early February). Monthly reporting will diverge if Finance is grouped by `payment_date` while Delivery is grouped by `event_time`.
 
-At this point, the **root cause is not yet clear**. Common explanations in systems like this include:
-- Duplicate or retried transactions (e.g., multiple payment attempts for the same order)
-- Missing or inconsistent identifiers used to link Finance and Delivery records
-- Timing differences between when a payment is recorded vs when a delivery event is recorded (month-end and late-arriving updates)
-- Definition differences (e.g., paid vs delivered vs returned/refunded vs failed)
+### 4) Definition mismatches (paid ≠ delivered)
+Delivery includes non-delivery outcomes (`FAILED`, `RETURNED`). If Finance reports “PAID” and Delivery reports “DELIVERED,” these won’t tie out without agreed business rules (e.g., whether to exclude returns, whether failures are re-shipped, etc.).
 
-Importantly, there is **no evidence of wrongdoing**—this appears consistent with typical legacy-system behavior and reporting logic drift over time. However, if we proceed without alignment, the warehouse could hard-code assumptions that later cause executive reporting disagreements.
+### 5) Lifecycle gaps (present in one system, missing in the other)
+The sample includes payments for orders/packages that do not appear in the Delivery extract and vice versa (depending on extract completeness). In a warehouse, we need to know whether that represents:
+- late-arriving data,
+- true process exceptions,
+- or extract/ETL coverage gaps.
 
-**Request:** We’d like your agreement to allocate a **time-boxed 1–2 business days** (or equivalent effort) to isolate and document the discrepancy drivers and agree on the “source-of-truth” definitions and join rules. This will allow us to move forward with confidence and avoid rework.
+**Conclusion:** These are all plausible “normal” causes in legacy systems, but they must be explicitly resolved and documented so the warehouse metrics are trusted and repeatable.
 
-**Proposed approach (time-boxed):**
-1. **Define reconciliation rules** with Finance + Delivery stakeholders (30–60 minutes)
-   - What constitutes a unique payment? How to treat retries/partials/refunds?
-   - What constitutes a successful delivery? How to treat returns/failures/re-shipments?
-2. **Run targeted checks** across the legacy extracts (same day)
-   - Duplicates, missing keys, late events, status transitions
-3. **Decision memo** (same or next day)
-   - Final definitions, mapping rules, known exceptions, and any gaps to track
+## Task 2: Communication (client-ready message contents, ≤400 words)
+**Subject:** Request to time-box Finance vs Delivery reconciliation before warehouse sign-off
 
-**Decision needed from you:** Please confirm whether you prefer:
-- **Option A (recommended):** Approve the 1–2 day time-box now to resolve and document reconciliation rules, or
-- **Option B:** Proceed on schedule with provisional rules (we can do this, but it increases the risk of later rework and metric disputes).
+Hi [Client Team],
 
-If you approve Option A, we will share a short memo and proposed implementation rules immediately after the time-box completes.
+As part of validation for the centralized data warehouse, we ran an initial reconciliation between the Finance payments extract and the Delivery status extract. We’re seeing **differences in totals and counts** that prevent a clean tie-out between “paid” activity in Finance and “delivered” outcomes in Delivery.
+
+At this stage, the root cause is **not yet confirmed**. Based on what we see so far, the gaps are consistent with common legacy-system patterns such as:
+- **Duplicate/replayed payments** (same order/package/amount/date appearing more than once), which can inflate Finance totals if not deduplicated.
+- **Missing or inconsistent join keys** (e.g., a blank `package_id`), which makes some Finance records unmatchable to Delivery.
+- **Timing differences** (e.g., paid late in month, delivered early next month), which causes month-end drift depending on which timestamp is used.
+- **Definition differences** (e.g., Finance “PAID” vs Delivery outcomes like `FAILED`/`RETURNED`), which require agreed business rules for reporting.
+
+To avoid locking incorrect assumptions into the warehouse, we recommend a **time-boxed reconciliation investigation (1–2 business days)** to produce a short decision memo with:
+1) agreed metric definitions (“paid,” “delivered,” “returned/refunded,” etc.),  
+2) deduplication + join keys/rules,  
+3) a small set of known exceptions (and how they will show up in dashboards).
+
+**Options:**
+- **Option A (recommended):** Approve the 1–2 day time-box now to confirm root causes and finalize rules before we publish executive metrics.
+- **Option B:** Continue on the current schedule with provisional rules (higher risk of later rework and reporting disputes).
+
+**Recommendation:** Option A. This is the smallest investment that materially reduces the risk of stakeholder misalignment later.
+
+Please confirm whether we can proceed with **Option A** and identify 1 Finance + 1 Delivery point person for a short working session. If approved, we will share the memo and implementation rules immediately after the time-box ends.
 
 Thanks,  
 Lemlem  
 Data Engineering
+
+### Simple diagram (how reconciliation breaks)
+```
+Finance (payments) --(order_id + package_id + rules)--> Delivery (status events)
+     | duplicate rows / missing keys / timing drift / status definitions |
+     +------------------------ causes mismatch --------------------------+
+```
 
 ## Materials Provided
 You receive:
