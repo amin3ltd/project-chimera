@@ -5,8 +5,7 @@ all: setup test
 
 setup:
 	@echo "Installing dependencies..."
-	uv pip install --system -r pyproject.toml
-	uv pip install --system -r pyproject.toml[dev]
+	uv pip install --system ".[dev]"
 
 test:
 	@echo "Running tests..."

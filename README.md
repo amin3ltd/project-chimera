@@ -79,8 +79,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 make setup
 
 # Or manually
-uv pip install -r pyproject.toml
-uv pip install -r pyproject.toml[dev]
+uv pip install ".[dev]"
 ```
 
 ### Option 2: Docker
