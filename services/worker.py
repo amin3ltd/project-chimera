@@ -9,7 +9,7 @@ import json
 import uuid
 import time as time_module
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional
 from pydantic import BaseModel, Field
 import redis
 
@@ -77,9 +77,10 @@ class Worker:
         """Pop task from Redis queue."""
         try:
             # Get highest priority task
-            result = self.redis.zrevpop(self.task_queue)
+            result = self.redis.zpopmax(self.task_queue, count=1)
             if result:
-                return json.loads(result[1])
+                member, _score = result[0]
+                return json.loads(member)
             return None
         except redis.RedisError as e:
             print(f"Worker {self.worker_id}: Error popping task: {e}")

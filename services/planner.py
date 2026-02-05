@@ -183,10 +183,10 @@ class Planner:
         """Pop highest priority task from queue."""
         try:
             # Get highest priority task (highest score first)
-            result = self.redis.zrevpop(self.queue_name)
+            result = self.redis.zpopmax(self.queue_name, count=1)
             if result:
-                task_data = json.loads(result[1])
-                return Task.from_json(result[1])
+                member, _score = result[0]
+                return Task.from_json(member)
             return None
         except redis.RedisError as e:
             print(f"Error popping task: {e}")

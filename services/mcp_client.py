@@ -5,8 +5,7 @@ Provides standardized connection to MCP servers for external tool/resource acces
 """
 
 import asyncio
-import json
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 
@@ -171,7 +170,7 @@ class MCPClient:
         """Add a prompt template."""
         self.prompts[name] = template
     
-    async def get_prompt(self, name: str, variables: Dict[str, str] = None) -> str:
+    async def get_prompt(self, name: str, variables: Dict[str, str] | None = None) -> str:
         """Get a rendered prompt template."""
         if name not in self.prompts:
             raise MCPError(f"Unknown prompt: {name}")
