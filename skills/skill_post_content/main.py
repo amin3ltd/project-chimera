@@ -32,8 +32,11 @@ class PostContentSkill:
         self.name = "skill_post_content"
         self.version = "1.0.0"
     
-    def execute(self, platform: str, text_content: str, 
-                media_urls: list[str] = None,
+    def execute(
+        self,
+        platform: str,
+        text_content: str,
+        media_urls: list[str] | None = None,
                 disclosure_level: str = "automated") -> PostContentOutput:
         """
         Post content to a social platform.
@@ -47,6 +50,7 @@ class PostContentSkill:
         Returns:
             PostContentOutput with post result
         """
+        media_urls = media_urls or []
         # TODO: Implement MCP calls for social platform posting
         return PostContentOutput(
             status="success",

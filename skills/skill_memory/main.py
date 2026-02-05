@@ -6,9 +6,11 @@ Provides RAG (Retrieval-Augmented Generation) capabilities.
 Real Weaviate integration.
 """
 
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 from pydantic import BaseModel, Field
 
 # Weaviate client (optional import)

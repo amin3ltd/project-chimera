@@ -5,9 +5,10 @@ Agentic Commerce using Coinbase AgentKit for financial autonomy.
 Real Coinbase integration with budget governance.
 """
 
+from __future__ import annotations
+
 import os
 import uuid
-from datetime import datetime
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 
@@ -15,8 +16,6 @@ from pydantic import BaseModel, Field
 try:
     from coinbase.agent import CdpEvmWalletProvider
     from coinbase.agentkit import (
-        CdpAgentKitProvider,
-        ActionProvider,
         WalletProvider,
     )
     COINBASE_AVAILABLE = True

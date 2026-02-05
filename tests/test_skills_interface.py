@@ -1,8 +1,5 @@
 """Test for Skills Interface - This test SHOULD fail initially."""
 
-import pytest
-
-
 def test_skill_input_contract():
     """Asserts that skills modules accept the correct parameters."""
     from skills import SkillRegistry

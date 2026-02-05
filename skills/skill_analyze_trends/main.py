@@ -5,8 +5,8 @@ Analyzes content for trending topics using MCP resources and semantic analysis.
 Real MCP integration for trend fetching.
 """
 
+import asyncio
 import json
-import uuid
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -253,10 +253,6 @@ class AnalyzeTrendsSkill:
         
         # Default to general
         return "technology"
-
-
-# Async wrapper for MCP calls
-import asyncio
 
 
 async def async_execute_trend_analysis(

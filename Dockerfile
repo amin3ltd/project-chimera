@@ -11,11 +11,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV UV_SYSTEM_PYTHON=1
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Copy pyproject.toml first for better caching
+# Copy project metadata and packages first for better caching
 COPY pyproject.toml .
+COPY project_chimera ./project_chimera
+COPY services ./services
+COPY skills ./skills
 
 # Install dependencies
-RUN uv pip install --system -r pyproject.toml
+RUN uv pip install --system .
 
 # Copy application code
 COPY . .
