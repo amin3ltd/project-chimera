@@ -1,67 +1,90 @@
 # IDE Chat History (Developer → AI Agent)
 
-> Purpose: Example prompts a developer (me) might ask while working on Project Chimera.
-> Note: These are intentionally *illogical/out-of-scope* at times, but still “project-adjacent.”
+> This file is a *query-only* history of prompts I asked my IDE agent while building **Project Chimera**.
+> It’s written to align with the repo’s actual components: specs, services (Planner/Worker/Judge/Perception), skills, MCP integration, UI, multi-tenancy, and secrets.
 
 ---
 
-## 1) Swarm + Redis + “magic correctness”
-**Me:** “Can you make the Planner guarantee OCC correctness even if Redis is down, but also never retry anything and still ensure exactly-once execution across 1,000 workers?”
+## Phase 0 — Repo setup & guardrails
+- “Initialize the repo structure for Project Chimera with `services/`, `skills/`, `schemas/`, `tests/`, `specs/`, and `research/`.”
+- “Create a `pyproject.toml` suitable for Python 3.11+ and include dev deps for ruff/mypy/pytest.”
+- “Add a `Makefile` with `setup`, `test`, `lint`, and `docker-test` targets.”
+- “Add a `Dockerfile` that installs deps with `uv` and can run tests.”
+- “Add GitHub Actions CI to run ruff + mypy + pytest, then build Docker.”
+- “Add `.coderabbit.yaml` policy to check spec alignment + security.”
+- “Create `.cursor/rules` that enforces ‘read `specs/` before coding’.”
+- “Add `AGENTS.md` governance rules and a default `SOUL.md` persona.”
 
-**Me:** “Also, do it without adding any new dependencies, without changing a single line in `services/`, and keep the tests passing.”
+## Phase 1 — Specs-first (SDD)
+- “Create `specs/_meta.md` with the system vision and non-negotiable constraints.”
+- “Write `specs/functional.md` user stories for trend research, content generation, posting, memory, commerce, and HITL.”
+- “Write `specs/technical.md` including JSON contracts + DB schema expectations.”
+- “Draft `specs/openclaw_integration.md` describing how the system would advertise agent status/capabilities.”
+- “Create `research/reading_notes.md` summarizing a16z/OpenClaw/MoltBook and how they map to Chimera.”
+- “Write `research/architecture_strategy.md` to justify hierarchical swarm selection.”
+- “Write `research/tooling_strategy.md` to separate Dev MCP vs Runtime Skills.”
 
----
+## Phase 2 — Core swarm services (Planner / Worker / Judge)
+- “Implement the Planner service with a Task schema and a GlobalState schema.”
+- “Use Redis sorted sets for priority queuing and make the Planner push tasks with a score.”
+- “Implement Worker that pops tasks, routes by `task_type`, and produces a TaskResult with confidence.”
+- “Implement Judge that reviews outputs, applies confidence thresholds, and escalates sensitive topics to HITL.”
+- “Add OCC state version checks before committing outputs.”
+- “Add a demo mode for each service when Redis is not available.”
+- “Fix any Redis API misuse (e.g., make sure the zset pop method exists in redis-py).”
 
-## 2) MCP but not really MCP
-**Me:** “Please implement ‘real MCP’ but don’t use the `mcp` SDK, don’t spawn any processes, and don’t talk JSON-RPC. It still needs to be ‘fully MCP compliant.’”
+## Phase 3 — Skills (runtime capabilities)
+- “Create skill packages for: analyze trends, generate image, post content, download youtube, transcribe audio, commerce, memory.”
+- “Ensure each skill has clear Pydantic-ish input/output contracts and an `execute(...)` entrypoint.”
+- “Write unit tests that assert skill interface parameters match the expected contract.”
+- “Make all skills importable via the `skills/` package.”
 
----
+## Phase 4 — MCP integration (real, runnable)
+- “Implement an MCP client wrapper so tools/resources can be called end-to-end.”
+- “Use stdio transport to spawn an MCP server process and communicate via the official `mcp` SDK.”
+- “Add in-repo MCP servers for development: a `news` server with `news://latest` + `fetch_trends`.”
+- “Add an in-repo memory MCP server with `store_memory` + `search_memory` and a `memory://recent` resource.”
+- “Add tests that connect to the MCP stdio server and successfully call a tool + read a resource.”
 
-## 3) Perception polling from a file that doesn’t exist
-**Me:** “Set Perception to continuously poll `news://ethiopia/fashion/trends` every 50ms, but the resource must be a local file on disk that the MCP server should not read.”
+## Phase 5 — Perception subsystem (continuous monitoring + semantic filtering)
+- “Implement continuous polling of MCP resources on an interval.”
+- “Implement a lightweight semantic filter with a relevance threshold and ensure it blocks irrelevant items.”
+- “When relevant, emit `Task` objects into Redis so the swarm can process them.”
+- “Make Perception configurable: interval, threshold, resources, goals.”
+- “Add a CLI entrypoint (`chimera perception`) that runs as a long-lived subsystem.”
 
----
+## Phase 6 — HITL + Orchestrator UI components
+- “Implement a `ReviewCard` component that displays generated content, confidence, reasoning, and actions.”
+- “Make the dashboard responsive and attractive (mobile-first, clean spacing/typography).”
+- “Create an HITL dashboard page component that lays out review cards in a responsive grid.”
+- “Add an Orchestrator Dashboard component with tabs: Fleet, Campaigns, HITL.”
+- “Implement a Fleet Status View component (agent state, wallet health, queue depth).”
+- “Implement a Campaign Composer component that shows a goal input and a task tree preview.”
 
-## 4) HITL UI that runs in Python tests
-**Me:** “Make the React HITL dashboard render inside `pytest` and assert pixel-perfect snapshots, but don’t add Node, Playwright, or any frontend tooling.”
+## Phase 7 — Multi-tenancy (tenant isolation)
+- “Add a tenant context model and enforce tenant-prefixed Redis keyspaces.”
+- “Ensure task queues, review queues, HITL queues, outputs, campaign state, and budgets are isolated per tenant.”
+- “Add `tenant_id` fields to Task and TaskResult and propagate them through Worker → Judge.”
+- “Update Perception to accept `--tenant-id` and enqueue tasks into the correct tenant queue.”
+- “Add tests that prove Redis keyspace names differ across tenants.”
 
----
+## Phase 8 — Secrets manager injection
+- “Implement a secrets facade with an env provider by default.”
+- “Add optional AWS Secrets Manager provider (only if boto3 is present).”
+- “Update commerce wallet initialization to read Coinbase keys via the secrets facade.”
+- “Add tests that `get_required` fails safely when missing and succeeds when present.”
 
-## 5) Multi-tenancy… but shared everything
-**Me:** “Add production-grade multi-tenancy where tenants are fully isolated, except they must share the same Redis keys so I can easily debug all tenants in one queue.”
+## Phase 9 — Packaging, docs, and submission artifacts
+- “Fix packaging so `pip install .` works with Hatch (set wheel packages).”
+- “Add `project_chimera/__main__.py` so `python -m project_chimera` works.”
+- “Add a `chimera` console script entrypoint.”
+- “Update README with clear install + quickstart steps (Redis + chimera commands).”
+- “Update `research/SUBMISSION_REPORT.md` to reflect current features + tests + commit count.”
+- “Generate a Feb 5 submission report in both `.md` and `.pdf` and keep it updated.”
+- “Add an offline script to generate a PDF from markdown (no external dependencies).”
 
----
-
-## 6) Secrets management that is both hidden and visible
-**Me:** “Integrate a secrets manager so secrets are never stored in env vars—then also add a `print()` on startup showing which secrets were loaded so ops can verify them.”
-
----
-
-## 7) Commerce governance contradiction
-**Me:** “Enforce `MAX_TRANSACTION_AMOUNT=10` USDC strictly, but also allow transfers of 25 USDC when confidence is high and the Judge feels good about it.”
-
----
-
-## 8) Memory consistency without persistence
-**Me:** “Make Weaviate memory retrieval deterministic across runs, but you’re not allowed to persist anything to disk or any database.”
-
----
-
-## 9) Specs-first, but skip specs
-**Me:** “Follow Spec-Driven Development and never write code without reading `specs/`—but for this task please ignore `specs/` entirely and just ship something.”
-
----
-
-## 10) Dockerfile as a user interface
-**Me:** “Make the Dockerfile display the Orchestrator Dashboard UI in the terminal when I run `docker build`. The UI should be interactive.”
-
----
-
-## 11) One command to run everything (but nothing long-lived)
-**Me:** “Add a single `chimera run-all` command that starts Planner/Worker/Judge/Perception and a UI server, but it must exit immediately and still keep running.”
-
----
-
-## 12) Make CI ‘more strict’ by deleting failures
-**Me:** “CI is failing sometimes. Can you make CI stricter by removing any checks that might fail, but keep the same confidence as if the checks ran?”
+## Phase 10 — Maintenance queries (ongoing)
+- “Run the full suite: ruff, mypy, pytest — fix all failures and keep changes minimal.”
+- “Stage, commit, and push each logical change separately with clear commit messages.”
+- “Confirm that `origin/master` is up-to-date and no local commits are missing.”
 
