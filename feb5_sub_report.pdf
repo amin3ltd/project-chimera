@@ -4,13 +4,13 @@
 << /Type /Catalog /Pages 2 0 R >>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R] /Count 3 >>
 endobj
 3 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
 4 0 obj
-<< /Length 3228 >>
+<< /Length 3622 >>
 stream
 BT
 /F1 11 Tf
@@ -30,6 +30,28 @@ BT
 (Persona) Tj
 0 -13 Td
 (**You are Lemlem**, a data team member building a client's data warehouse.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Executive Summary) Tj
+0 -13 Td
+(Lemlem discovered **non-trivial reconciliation gaps** between Finance and Delivery during) Tj
+0 -13 Td
+(proactive validation. Because the program is on a fast-track schedule with no validation) Tj
+0 -13 Td
+(buffer, the immediate goal is to secure **client agreement for a time-boxed investigation** to) Tj
+0 -13 Td
+(isolate whether gaps are caused by data quality, timing/reporting windows, or definition) Tj
+0 -13 Td
+(mismatches-before these issues become embedded in the warehouse as "truth.") Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(This report includes a **client-ready update** that balances urgency with diplomacy, proposes a) Tj
+0 -13 Td
+(concrete and limited scope, and requests explicit approval to allocate time to root-cause the) Tj
+0 -13 Td
+(discrepancies.) Tj
 0 -13 Td
 () Tj
 0 -13 Td
@@ -96,7 +118,18 @@ BT
 (* Definition mismatches) Tj
 0 -13 Td
 (* Team misunderstanding) Tj
-0 -13 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 3405 >>
+stream
+BT
+/F1 11 Tf
+54 760 Td
 (* Something nefarious) Tj
 0 -13 Td
 (* System inconsistencies) Tj
@@ -113,23 +146,153 @@ BT
 0 -13 Td
 () Tj
 0 -13 Td
+(What We Observed \(High Level\)) Tj
+0 -13 Td
+(During initial reconciliation checks \(using sample extracts as a stand-in for the broader) Tj
+0 -13 Td
+(legacy landscape\), the types of mismatches that commonly appear include:) Tj
+0 -13 Td
+(* **Data quality issues**: missing/blank join keys, duplicate transaction rows, inconsistent) Tj
+0 -13 Td
+(identifiers across systems) Tj
+0 -13 Td
+(* **Timing/reporting differences**: payments recorded in one period while delivery events land) Tj
+0 -13 Td
+(in another; late-arriving events) Tj
+0 -13 Td
+(* **Definition mismatches**: "paid" vs "delivered" vs "completed" are not necessarily) Tj
+0 -13 Td
+(equivalent business events) Tj
+0 -13 Td
+(* **Process/system inconsistencies**: retries, partial captures/refunds, re-shipments, returns,) Tj
+0 -13 Td
+(and operational overrides) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(These are normal in legacy environments with many contributors, but they must be resolved \(or) Tj
+0 -13 Td
+(explicitly modeled\) to avoid downstream reporting disputes.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Client Update Draft \(Request for Time-Boxed Reconciliation Investigation\)) Tj
+0 -13 Td
+(**Subject:** Request to time-box reconciliation of Finance vs Delivery metrics) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Hi [Client Name/Team],) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(As part of our ongoing validation while building the centralized data warehouse, we ran an) Tj
+0 -13 Td
+(initial reconciliation between the Finance payments dataset and the Delivery status dataset.) Tj
+0 -13 Td
+(We're seeing **small but material differences** in counts and totals that prevent a clean) Tj
+0 -13 Td
+(tie-out between "paid" and "delivered" outcomes.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(At this point, the **root cause is not yet clear**. Common explanations in systems like this) Tj
+0 -13 Td
+(include:) Tj
+0 -13 Td
+(* Duplicate or retried transactions \(e.g., multiple payment attempts for the same order\)) Tj
+0 -13 Td
+(* Missing or inconsistent identifiers used to link Finance and Delivery records) Tj
+0 -13 Td
+(* Timing differences between when a payment is recorded vs when a delivery event is recorded) Tj
+0 -13 Td
+(\(month-end and late-arriving updates\)) Tj
+0 -13 Td
+(* Definition differences \(e.g., paid vs delivered vs returned/refunded vs failed\)) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Importantly, there is **no evidence of wrongdoing**-this appears consistent with typical) Tj
+0 -13 Td
+(legacy-system behavior and reporting logic drift over time. However, if we proceed without) Tj
+0 -13 Td
+(alignment, the warehouse could hard-code assumptions that later cause executive reporting) Tj
+0 -13 Td
+(disagreements.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(**Request:** We'd like your agreement to allocate a **time-boxed 1-2 business days** \(or) Tj
+0 -13 Td
+(equivalent effort\) to isolate and document the discrepancy drivers and agree on the) Tj
+0 -13 Td
+("source-of-truth" definitions and join rules. This will allow us to move forward with) Tj
+0 -13 Td
+(confidence and avoid rework.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(**Proposed approach \(time-boxed\):**) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 1610 >>
+stream
+BT
+/F1 11 Tf
+54 760 Td
+(1. **Define reconciliation rules** with Finance + Delivery stakeholders \(30-60 minutes\)) Tj
+0 -13 Td
+(      - What constitutes a unique payment? How to treat retries/partials/refunds?) Tj
+0 -13 Td
+(      - What constitutes a successful delivery? How to treat returns/failures/re-shipments?) Tj
+0 -13 Td
+(2. **Run targeted checks** across the legacy extracts \(same day\)) Tj
+0 -13 Td
+(      - Duplicates, missing keys, late events, status transitions) Tj
+0 -13 Td
+(3. **Decision memo** \(same or next day\)) Tj
+0 -13 Td
+(      - Final definitions, mapping rules, known exceptions, and any gaps to track) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(**Decision needed from you:** Please confirm whether you prefer:) Tj
+0 -13 Td
+(* **Option A \(recommended\):** Approve the 1-2 day time-box now to resolve and document) Tj
+0 -13 Td
+(reconciliation rules, or) Tj
+0 -13 Td
+(* **Option B:** Proceed on schedule with provisional rules \(we can do this, but it increases) Tj
+0 -13 Td
+(the risk of later rework and metric disputes\).) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(If you approve Option A, we will share a short memo and proposed implementation rules) Tj
+0 -13 Td
+(immediately after the time-box completes.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Thanks,) Tj
+0 -13 Td
+(Lemlem) Tj
+0 -13 Td
+(Data Engineering) Tj
+0 -13 Td
+() Tj
+0 -13 Td
 (Materials Provided) Tj
 0 -13 Td
 (You receive:) Tj
 0 -13 Td
 (* Client brief \(above\)) Tj
-ET
-endstream
-endobj
-5 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
-endobj
-6 0 obj
-<< /Length 211 >>
-stream
-BT
-/F1 11 Tf
-54 760 Td
+0 -13 Td
 (* Sample data \(extracts\)) Tj
 0 -13 Td
 (* Guidance on desired next actions) Tj
@@ -140,21 +303,23 @@ BT
 ET
 endstream
 endobj
-7 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
 endobj
 xref
-0 8
+0 10
 0000000000 65535 f 
 0000000015 00000 n 
 0000000064 00000 n 
-0000000127 00000 n 
-0000000197 00000 n 
-0000003477 00000 n 
-0000003603 00000 n 
-0000003865 00000 n 
+0000000133 00000 n 
+0000000203 00000 n 
+0000003877 00000 n 
+0000004003 00000 n 
+0000007460 00000 n 
+0000007586 00000 n 
+0000009248 00000 n 
 trailer
-<< /Size 8 /Root 1 0 R >>
+<< /Size 10 /Root 1 0 R >>
 startxref
-3991
+9374
 %%EOF
