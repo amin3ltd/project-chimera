@@ -106,3 +106,41 @@ export function Textarea(
   );
 }
 
+export function Input(
+  props: React.InputHTMLAttributes<HTMLInputElement> & { className?: string }
+) {
+  const { className, ...rest } = props;
+  return (
+    <input
+      className={cn(
+        'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900',
+        'placeholder:text-slate-400 shadow-sm',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-2',
+        className
+      )}
+      {...rest}
+    />
+  );
+}
+
+export function Separator(props: React.HTMLAttributes<HTMLDivElement>) {
+  const { className, ...rest } = props;
+  return <div className={cn('h-px w-full bg-slate-200', className)} {...rest} />;
+}
+
+export function Progress(props: { value: number; className?: string }) {
+  const value = Math.max(0, Math.min(100, props.value));
+  return (
+    <div className={cn('h-2 w-full rounded-full bg-slate-100', props.className)}>
+      <div
+        className="h-2 rounded-full bg-emerald-500"
+        style={{ width: `${value}%` }}
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        role="progressbar"
+      />
+    </div>
+  );
+}
+
