@@ -1,0 +1,160 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 3228 >>
+stream
+BT
+/F1 11 Tf
+54 760 Td
+(Feb 5 Submission Report - Delivery Challenge) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Title) Tj
+0 -13 Td
+(**The Delivery Challenge**) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Persona) Tj
+0 -13 Td
+(**You are Lemlem**, a data team member building a client's data warehouse.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Scenario) Tj
+0 -13 Td
+(Lemlem is a recently appointed mid-level Data Engineer tasked with spearheading the development) Tj
+0 -13 Td
+(of a centralized data warehouse for a primary client. As a new addition to the team, Lemlem) Tj
+0 -13 Td
+(faces the "Liability of Newness"-a sociological phenomenon where a lack of established trust) Tj
+0 -13 Td
+(and institutional knowledge complicates the navigation of internal politics. This role serves) Tj
+0 -13 Td
+(as Lemlem's debut in high-stakes client delivery, requiring a delicate balance between) Tj
+0 -13 Td
+(technical rigor and executive diplomacy.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(The project environment is characterized by a significant internal schism regarding digital) Tj
+0 -13 Td
+(transformation. While senior leadership views the centralized warehouse as a catalyst for) Tj
+0 -13 Td
+(organizational scaling, the operational staff exhibits varying degrees of "information) Tj
+0 -13 Td
+(hoarding." This defensive posture suggests a perceived threat to departmental autonomy or a) Tj
+0 -13 Td
+(fear of exposure regarding legacy process inefficiencies. Consequently, data discovery is) Tj
+0 -13 Td
+(hindered by stakeholders who are protective of their datasets and resistant to cross-functional) Tj
+0 -13 Td
+(inquiry.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(The project is currently operating under a compressed "fast-track" schedule with zero allocated) Tj
+0 -13 Td
+(buffer for iterative validation. The discovery of discrepancies between Finance and Delivery) Tj
+0 -13 Td
+(datasets introduces a critical project management dilemma. Because the project plan is rigid,) Tj
+0 -13 Td
+(the effort required for a comprehensive root-cause analysis represents a zero-sum trade-off.) Tj
+0 -13 Td
+(Lemlem must navigate the "Project Management Triangle," where the pursuit of data integrity) Tj
+0 -13 Td
+(\(Quality\) directly threatens either the project timeline \(Time\) or the team's human capital) Tj
+0 -13 Td
+(\(Scope/Burnout\), necessitating a strategic decision on resource prioritization.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(During validation that you undertook on your own, you discover some curious discrepancies) Tj
+0 -13 Td
+(between finance data and delivery data. Totals and counts do not fully reconcile.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(The root cause is unclear. Possible explanations include:) Tj
+0 -13 Td
+(* Data quality issues) Tj
+0 -13 Td
+(* Timing/reporting differences) Tj
+0 -13 Td
+(* Definition mismatches) Tj
+0 -13 Td
+(* Team misunderstanding) Tj
+0 -13 Td
+(* Something nefarious) Tj
+0 -13 Td
+(* System inconsistencies) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(There is no evidence of wrongdoing, yet.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Your manager asks you to draft a client update to ask for agreement to allocate some time to) Tj
+0 -13 Td
+(look into the discrepancies.) Tj
+0 -13 Td
+() Tj
+0 -13 Td
+(Materials Provided) Tj
+0 -13 Td
+(You receive:) Tj
+0 -13 Td
+(* Client brief \(above\)) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 211 >>
+stream
+BT
+/F1 11 Tf
+54 760 Td
+(* Sample data \(extracts\)) Tj
+0 -13 Td
+(* Guidance on desired next actions) Tj
+0 -13 Td
+(* \(Assume materials may be imperfect or incomplete - like real projects.\)) Tj
+0 -13 Td
+() Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000127 00000 n 
+0000000197 00000 n 
+0000003477 00000 n 
+0000003603 00000 n 
+0000003865 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+3991
+%%EOF
