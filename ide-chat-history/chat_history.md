@@ -1,7 +1,4 @@
-# IDE Chat History (Developer → AI Agent)
-
-> This file is a *query-only* history of prompts I asked my IDE agent while building **Project Chimera**.
-> It’s written to align with the repo’s actual components: specs, services (Planner/Worker/Judge/Perception), skills, MCP integration, UI, multi-tenancy, and secrets.
+# IDE Chat History 
 
 ---
 
