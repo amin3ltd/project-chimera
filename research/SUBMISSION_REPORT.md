@@ -1,8 +1,8 @@
 # Project Chimera - Research Summary Report
 
 **Author:** Forward Deployed Engineer (FDE) Trainee  
-**Date:** February 4, 2026  
-**Version:** 1.2.0  
+**Date:** February 5, 2026  
+**Version:** 1.3.0  
 **Status:** Submission Ready (100% SRS Compliance)
 
 ---
@@ -33,8 +33,9 @@ Key accomplishments include:
 - **Redis Queue Integration** for Planner, Worker, and Judge services with Optimistic Concurrency Control (OCC)
 - **MCP Client Infrastructure** with server factories for Twitter, News, and Coinbase
 - **PostgreSQL Database Schema** with full table definitions for agents, tasks, memories, and transactions
-- **HITL Dashboard Component** (React) for human review of low-confidence tasks
+- **HITL Dashboard UI** (React) with a responsive dashboard layout and modernized review card for human review of low-confidence tasks
 - **Comprehensive Documentation** including installation guides, MCP setup, and usage examples
+- **Tooling & Packaging Fixes** ensuring CI, Docker, and dependency installation run reliably (`uv` install flow + `project_chimera` entrypoint)
 
 ---
 
@@ -263,10 +264,15 @@ project-chimera/
 │   ├── skill_post_content/
 │   ├── skill_commerce/    # Coinbase AgentKit integration
 │   └── skill_memory/       # Weaviate integration
+├── project_chimera/        # Runnable entrypoint (python -m project_chimera)
 ├── services/
 │   ├── planner.py         # Goal decomposition
 │   ├── worker.py          # Task execution
 │   └── judge.py           # Quality control
+├── components/
+│   ├── ReviewCard.tsx      # HITL review component (responsive)
+│   ├── Dashboard.tsx       # Responsive HITL dashboard layout
+│   └── ui/                 # Minimal UI kit used by components
 ├── tests/
 │   ├── test_skills_interface.py
 │   └── test_trend_fetcher.py
@@ -298,22 +304,19 @@ project-chimera/
 ### 3.3 Test Results
 
 ```
-$ py -m pytest tests/ -v
-============================= test session starts =============================
-platform win32 -- Python 3.14.2, pytest-9.0.2
-collected 9 items
+$ python -m pytest -q
+.........                                                                [100%]
+9 passed in <1s
+```
 
-tests/test_skills_interface.py::test_skill_input_contract PASSED
-tests/test_skills_interface.py::test_download_youtube_skill PASSED
-tests/test_skills_interface.py::test_transcribe_audio_skill PASSED
-tests/test_skills_interface.py::test_analyze_trends_skill PASSED
-tests/test_skills_interface.py::test_generate_image_skill PASSED
-tests/test_skills_interface.py::test_post_content_skill PASSED
-tests/test_trend_fetcher.py::test_trend_data_structure PASSED
-tests/test_trend_fetcher.py::test_trend_with_required_fields PASSED
-tests/test_trend_fetcher.py::test_trend_relevance_threshold PASSED
+Static checks (CI quality gates):
 
-============================== 9 passed in 0.11s ==============================
+```
+$ ruff check .
+All checks passed!
+
+$ mypy .
+Success: no issues found
 ```
 
 ### Extended Test Results
@@ -389,19 +392,10 @@ Step 4: Memory integration successful
 
 ### 3.4 CI/CD Pipeline
 
-```
-$ py -m py_compile services/planner.py services/worker.py services/judge.py skills/skill_analyze_trends/main.py skills/skill_memory/main.py skills/skill_commerce/main.py
-Syntax check passed
-```
-
-All core services and skills validated successfully.
-
-### 3.4 CI/CD Pipeline
-
 The GitHub Actions workflow implements governance requirements:
 
 1. **Test Stage**
-   - Dependency installation via uv
+   - Dependency installation via uv (`uv pip install --system ".[dev]"`)
    - Linting with ruff and mypy
    - pytest execution with coverage
 
@@ -412,6 +406,19 @@ The GitHub Actions workflow implements governance requirements:
 3. **Security Stage**
    - vulnerability scanning via safety
    - Dependency audit
+
+### 3.5 Recent Fixes & UI Improvements (Feb 5, 2026)
+
+#### Reliability / Bug Fixes
+- **CI dependency installation fixed**: replaced invalid `uv pip install ... -r pyproject.toml` usage with `uv pip install --system ".[dev]"`.
+- **Docker runtime fixed**: added runnable `project_chimera` entrypoint and ensured Docker can run `python -m project_chimera`.
+- **Packaging fixed**: configured Hatch wheel packaging targets so the project can be installed/built correctly.
+- **Redis queue pop fixed**: replaced nonexistent `zrevpop` usage with `zpopmax(..., count=1)` for sorted-set priority queues.
+
+#### Dashboard UI
+- **Responsive dashboard layout**: added `components/Dashboard.tsx` with responsive header, stats cards, and a 1→2 column review grid.
+- **Modernized review card**: improved `components/ReviewCard.tsx` for mobile/desktop ergonomics, polish, and clearer decision affordances.
+- **Minimal UI kit**: introduced `components/ui/index.tsx` (`Card`, `Badge`, `Button`, `Textarea`) with consistent styling and focus states.
 
 ---
 
@@ -455,6 +462,7 @@ The repository is positioned for immediate continuation of implementation work, 
 ---
 
 **Repository:** https://github.com/amin3ltd/project-chimera  
-**Total Commits:** 16  
-**Test Coverage:** 53 passing tests (100%)  
+**Total Commits:** 22  
+**Commits Added (since v1.2.0):** 4 (`ed9c3d4`, `a19c70b`, `8e4bacb`, `1d4969d`)  
+**Unit Tests:** 9 passing tests  
 **SRS Compliance:** 22/22 requirements met
