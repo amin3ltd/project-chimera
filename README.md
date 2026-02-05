@@ -49,21 +49,30 @@ Project Chimera is an autonomous AI influencer system built on **Spec-Driven Dev
 - **Judge**: Quality control with confidence scoring
 
 ### MCP Integration
-- Twitter, Instagram, News MCP servers
-- Weaviate vector memory
-- Coinbase AgentKit for commerce
+- Real MCP stdio integration via the official `mcp` Python SDK
+- In-repo MCP servers for runnable dev/testing:
+  - `mcp_servers/news_server.py` (resource `news://latest`, tool `fetch_trends`)
+  - `mcp_servers/memory_server.py` (tools `store_memory`, `search_memory`)
+- Server factories in `services/mcp_client.py` (Twitter/News/Coinbase)
 
 ### Human-in-the-Loop (HITL)
 - Confidence-based routing (>0.90 auto-approve)
 - Mandatory review for sensitive topics
-- Dashboard for human operators
+- Responsive HITL UI components (`components/ReviewCard.tsx`, `components/Dashboard.tsx`)
+- Orchestrator UI components (`components/OrchestratorDashboard.tsx`, Fleet/Campaigns/HITL tabs)
+
+### Multi-tenancy + Secrets
+- Tenant-isolated Redis keyspace for queues/state/output/budget (`services/tenancy.py`)
+- Secrets provider facade (`services/secrets.py`)
+  - Default: environment variables
+  - Optional: AWS Secrets Manager (requires `boto3` + AWS credentials)
 
 ## Installation
 
 ### Prerequisites
 - Python 3.11+
 - Redis 7.0+
-- uv (fast Python package manager)
+- `uv` (recommended) or `pip`
 
 ### Option 1: Local Installation
 
@@ -75,11 +84,17 @@ cd project-chimera
 # Install uv (if not installed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install dependencies
-make setup
-
-# Or manually
+# Install dependencies (recommended)
 uv pip install ".[dev]"
+
+# Or using Makefile (requires uv on PATH)
+make setup
+```
+
+### Start Redis (local)
+
+```bash
+docker run --rm -p 6379:6379 redis:7
 ```
 
 ### Option 2: Docker
@@ -95,14 +110,29 @@ docker run --rm project-chimera make test
 docker run -it --rm -v $(pwd):/app project-chimera bash
 ```
 
-### Option 3: Docker Compose (Recommended)
+## Quickstart (runnable commands)
+
+### Run the Perception subsystem (continuous monitoring + semantic filter)
+
+This continuously polls MCP resources, filters for relevance against campaign goals, and enqueues tasks into the tenant’s Redis task queue.
 
 ```bash
-# Start all services including Redis
-docker-compose up -d
+chimera perception \
+  --tenant-id default \
+  --campaign-id demo \
+  --redis-url redis://localhost:6379 \
+  --interval 10 \
+  --threshold 0.75 \
+  --goal "AI agents" \
+  --goal "AI disclosure"
+```
 
-# Run tests
-docker-compose exec chimera make test
+### Run the Swarm services
+
+```bash
+chimera planner --campaign-id demo --redis-url redis://localhost:6379
+chimera worker --redis-url redis://localhost:6379
+chimera judge --redis-url redis://localhost:6379
 ```
 
 ## Configuration
@@ -121,6 +151,13 @@ WEAVIATE_URL=http://localhost:8080
 # Coinbase AgentKit
 CDP_API_KEY_NAME=your_api_key_name
 CDP_API_KEY_PRIVATE_KEY=your_private_key
+
+# Secrets provider (default: env)
+CHIMERA_SECRETS_PROVIDER=env
+# Optional AWS Secrets Manager:
+# CHIMERA_SECRETS_PROVIDER=aws
+# AWS_REGION=us-east-1
+# CHIMERA_AWS_SECRET_PREFIX=chimera/
 
 # MCP Servers (optional)
 MCP_TWITTER_URL=http://localhost:3000
@@ -147,14 +184,10 @@ mcp-server-coinbase --port 3002
 ### Running Services
 
 ```bash
-# Start the Planner
-python -m services.planner
-
-# Start a Worker (in another terminal)
-python -m services.worker --worker-id worker-001
-
-# Start the Judge
-python -m services.judge
+# Use the entrypoint:
+chimera planner --campaign-id test-campaign-001
+chimera worker --worker-id worker-001
+chimera judge
 ```
 
 ### Using Skills
@@ -202,6 +235,9 @@ pytest tests/test_trend_fetcher.py -v
 
 ```
 project-chimera/
+├── mcp_servers/           # In-repo MCP servers for dev/testing
+│   ├── news_server.py
+│   └── memory_server.py
 ├── components/           # React components (Dashboard, ReviewCard)
 ├── schemas/              # Pydantic models & SQL schemas
 │   ├── trend.py         # Trend data models

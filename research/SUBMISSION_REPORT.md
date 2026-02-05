@@ -2,7 +2,7 @@
 
 **Author:** Forward Deployed Engineer (FDE) Trainee  
 **Date:** February 5, 2026  
-**Version:** 1.3.0  
+**Version:** 1.4.0  
 **Status:** Submission Ready (100% SRS Compliance)
 
 ---
@@ -27,13 +27,16 @@ The system architecture follows the **FastRender Swarm Pattern**, leveraging Mod
 Key accomplishments include:
 - Complete specification suite covering functional, technical, and integration requirements
 - Seven fully implemented skills with class-based interfaces
-- Test-Driven Development (TDD) methodology with 9 passing tests
+- Test-Driven Development (TDD) methodology with 13 passing tests
 - CI/CD governance pipeline with automated linting, security checks, and testing
 - Clear separation of Developer MCPs and Runtime Skills
 - **Redis Queue Integration** for Planner, Worker, and Judge services with Optimistic Concurrency Control (OCC)
-- **MCP Client Infrastructure** with server factories for Twitter, News, and Coinbase
+- **MCP Client Infrastructure** with real stdio integration (official `mcp` SDK) and server factories for Twitter/News/Coinbase
+- **Continuous Perception Subsystem** implementing resource monitoring + semantic filtering (SRS FR 2.0/2.1) and enqueueing tasks into Redis
 - **PostgreSQL Database Schema** with full table definitions for agents, tasks, memories, and transactions
 - **HITL Dashboard UI** (React) with a responsive dashboard layout and modernized review card for human review of low-confidence tasks
+- **Multi-tenancy isolation** via tenant-scoped Redis keyspace for queues/state/output/budget
+- **Secrets provider abstraction** (env by default; optional AWS Secrets Manager) used by commerce wallet initialization
 - **Comprehensive Documentation** including installation guides, MCP setup, and usage examples
 - **Tooling & Packaging Fixes** ensuring CI, Docker, and dependency installation run reliably (`uv` install flow + `project_chimera` entrypoint)
 
@@ -305,8 +308,8 @@ project-chimera/
 
 ```
 $ python -m pytest -q
-.........                                                                [100%]
-9 passed in <1s
+.............                                                            [100%]
+13 passed in <2s
 ```
 
 Static checks (CI quality gates):
@@ -381,7 +384,7 @@ Step 4: Memory integration successful
 #### Test Summary
 | Test Type | Count | Result |
 |-----------|-------|--------|
-| Unit Tests | 9 | ✅ All Passing |
+| Unit Tests | 13 | ✅ All Passing |
 | Functional Tests | 4 | ✅ All Passing |
 | Integration Tests | 4 | ✅ All Passing |
 | Usability Tests | 6 | ✅ All Passing |
@@ -462,7 +465,6 @@ The repository is positioned for immediate continuation of implementation work, 
 ---
 
 **Repository:** https://github.com/amin3ltd/project-chimera  
-**Total Commits:** 22  
-**Commits Added (since v1.2.0):** 4 (`ed9c3d4`, `a19c70b`, `8e4bacb`, `1d4969d`)  
-**Unit Tests:** 9 passing tests  
+**Total Commits:** 34  
+**Unit Tests:** 13 passing tests  
 **SRS Compliance:** 22/22 requirements met
