@@ -32,6 +32,7 @@ class MemoryInput(BaseModel):
     action: str = Field(..., description="Action: store | retrieve | search | delete")
     content: Optional[str] = Field(default=None, description="Content to store")
     query: Optional[str] = Field(default=None, description="Query for search")
+    tenant_id: str = Field(default="default", description="Tenant identifier for isolation")
     agent_id: str = Field(..., description="Agent ID")
     memory_type: str = Field(default="episodic", description="Type: episodic | semantic | short_term | long_term")
     importance_score: float = Field(default=0.5, ge=0.0, le=1.0)
@@ -43,6 +44,7 @@ class MemoryInput(BaseModel):
 class MemoryEntry(BaseModel):
     """Memory entry schema"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str = "default"
     agent_id: str
     content: str
     memory_type: str

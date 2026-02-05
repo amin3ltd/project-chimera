@@ -12,17 +12,18 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 import redis
 
+from services.tenancy import DEFAULT_TENANT_ID, RedisKeyspace
+
 
 # Redis Configuration
 REDIS_URL = "redis://localhost:6379"
-TASK_QUEUE = "task_queue"
-GLOBAL_STATE_PREFIX = "campaign:"
 
 
 # Task Schema
 class Task(BaseModel):
     """Task schema for Planner → Worker handoff."""
     task_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str = Field(default=DEFAULT_TENANT_ID, description="Tenant identifier for isolation")
     task_type: str  # generate_content | reply_comment | execute_transaction | analyze_trends
     priority: str = "medium"  # high | medium | low
     goal_description: str
@@ -43,6 +44,7 @@ class Task(BaseModel):
 
 class GlobalState(BaseModel):
     """Global state containing campaign goals."""
+    tenant_id: str = Field(default=DEFAULT_TENANT_ID, description="Tenant identifier for isolation")
     campaign_id: str
     goals: list[str] = Field(default_factory=list)
     budget_limit: float = 0.0
@@ -69,11 +71,11 @@ class Planner:
     - Dynamic re-planning on context changes
     """
     
-    def __init__(self, redis_url: str = REDIS_URL):
+    def __init__(self, redis_url: str = REDIS_URL, *, tenant_id: str = DEFAULT_TENANT_ID):
         """Initialize planner with Redis connection."""
         self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
-        self.queue_name = TASK_QUEUE
-        self.state_prefix = GLOBAL_STATE_PREFIX
+        self.keyspace = RedisKeyspace(tenant_id=tenant_id)
+        self.queue_name = self.keyspace.task_queue()
         
     def is_connected(self) -> bool:
         """Check Redis connection."""
@@ -86,7 +88,7 @@ class Planner:
     def read_global_state(self, campaign_id: str) -> Optional[GlobalState]:
         """Read current campaign state from Redis."""
         try:
-            data = self.redis.hget(f"{self.state_prefix}{campaign_id}", "state")
+            data = self.redis.hget(self.keyspace.campaign_key(campaign_id), self.keyspace.campaign_state_field())
             if data:
                 return GlobalState.from_json(data)
             return None
@@ -100,8 +102,8 @@ class Planner:
             state.updated_at = datetime.now().isoformat()
             state.state_version += 1
             self.redis.hset(
-                f"{self.state_prefix}{state.campaign_id}",
-                "state",
+                self.keyspace.campaign_key(state.campaign_id),
+                self.keyspace.campaign_state_field(),
                 state.to_json()
             )
             return True
@@ -138,6 +140,7 @@ class Planner:
         # Always add analysis task if trends are involved
         if "trend" in goal_lower or "research" in goal_lower:
             subtasks.append(Task(
+                tenant_id=self.keyspace.tenant_id,
                 task_type="analyze_trends",
                 priority="high",
                 goal_description=f"Analyze trends for: {goal}",
@@ -146,6 +149,7 @@ class Planner:
         
         # Add content generation
         subtasks.append(Task(
+            tenant_id=self.keyspace.tenant_id,
             task_type=task_type,
             priority="medium",
             goal_description=goal,
@@ -159,6 +163,7 @@ class Planner:
     def create_task(self, task_data: dict, campaign_id: str) -> Task:
         """Create a Task object."""
         return Task(
+            tenant_id=self.keyspace.tenant_id,
             campaign_id=campaign_id,
             **task_data
         )

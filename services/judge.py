@@ -12,13 +12,13 @@ from typing import Optional
 from pydantic import BaseModel, Field
 import redis
 
+from services.tenancy import DEFAULT_TENANT_ID, RedisKeyspace
+
 
 # Redis Configuration
 REDIS_URL = "redis://localhost:6379"
-REVIEW_QUEUE = "review_queue"
-HITL_QUEUE = "hitl_queue"
-GLOBAL_STATE_PREFIX = "campaign:"
-OUTPUT_PREFIX = "output:"
+GLOBAL_STATE_PREFIX = "campaign:"  # legacy; use RedisKeyspace for tenant scoping
+OUTPUT_PREFIX = "output:"  # legacy; use RedisKeyspace for tenant scoping
 
 
 # Confidence Thresholds (from SRS)
@@ -39,6 +39,7 @@ SENSITIVE_TOPICS = [
 class JudgeDecision(BaseModel):
     """Judge decision on task result."""
     task_id: str
+    tenant_id: str = Field(default=DEFAULT_TENANT_ID, description="Tenant identifier for isolation")
     decision: str  # approve | reject | escalate
     confidence_score: float
     reasoning: str
@@ -72,13 +73,12 @@ class Judge:
     - Implement Optimistic Concurrency Control (OCC)
     """
     
-    def __init__(self, redis_url: str = REDIS_URL):
+    def __init__(self, redis_url: str = REDIS_URL, *, tenant_id: str = DEFAULT_TENANT_ID):
         """Initialize judge with Redis connection."""
         self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
-        self.review_queue = REVIEW_QUEUE
-        self.hitl_queue = HITL_QUEUE
-        self.state_prefix = GLOBAL_STATE_PREFIX
-        self.output_prefix = OUTPUT_PREFIX
+        self.keyspace = RedisKeyspace(tenant_id=tenant_id)
+        self.review_queue = self.keyspace.review_queue()
+        self.hitl_queue = self.keyspace.hitl_queue()
         
     def is_connected(self) -> bool:
         """Check Redis connection."""
@@ -122,11 +122,13 @@ class Judge:
         task_id = task_result.get("task_id")
         confidence = task_result.get("confidence_score", 0.0)
         output = task_result.get("output", {})
+        tenant_id = task_result.get("tenant_id", self.keyspace.tenant_id)
         
         # Check for sensitive content (mandatory escalation)
         if self._contains_sensitive_content(output):
             return JudgeDecision(
                 task_id=task_id,
+                tenant_id=tenant_id,
                 decision="escalate",
                 confidence_score=confidence,
                 reasoning="Content contains sensitive topics - requires human review",
@@ -137,6 +139,7 @@ class Judge:
         if confidence >= HIGH_CONFIDENCE:
             return JudgeDecision(
                 task_id=task_id,
+                tenant_id=tenant_id,
                 decision="approve",
                 confidence_score=confidence,
                 reasoning=f"High confidence ({confidence}) - auto-approved",
@@ -144,6 +147,7 @@ class Judge:
         elif confidence >= MEDIUM_CONFIDENCE:
             return JudgeDecision(
                 task_id=task_id,
+                tenant_id=tenant_id,
                 decision="escalate",
                 confidence_score=confidence,
                 reasoning=f"Medium confidence ({confidence}) - human review required",
@@ -152,6 +156,7 @@ class Judge:
         else:
             return JudgeDecision(
                 task_id=task_id,
+                tenant_id=tenant_id,
                 decision="reject",
                 confidence_score=confidence,
                 reasoning=f"Low confidence ({confidence}) - retry with refined prompt",
@@ -176,8 +181,8 @@ class Judge:
         """
         try:
             current_version = self.redis.hget(
-                f"{self.state_prefix}{campaign_id}",
-                "version"
+                self.keyspace.campaign_key(campaign_id),
+                self.keyspace.campaign_version_field()
             )
             current_version = int(current_version) if current_version else 0
             
@@ -206,7 +211,7 @@ class Judge:
                 )
             
             # Store output
-            output_key = f"{self.output_prefix}{task_result.get('task_id')}"
+            output_key = self.keyspace.output_key(task_result.get("task_id"))
             self.redis.setex(
                 output_key,
                 86400,  # 24 hour TTL
@@ -221,8 +226,8 @@ class Judge:
             # Update state version
             new_version = current_version + 1
             self.redis.hset(
-                f"{self.state_prefix}{campaign_id}",
-                "version",
+                self.keyspace.campaign_key(campaign_id),
+                self.keyspace.campaign_version_field(),
                 str(new_version)
             )
             

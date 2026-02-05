@@ -155,8 +155,8 @@ class RedisTaskQueueSink:
     This makes the Perception system a runnable subsystem that feeds the swarm.
     """
 
-    def __init__(self, *, redis_url: str | None = None):
-        self.planner = Planner(redis_url=redis_url) if redis_url else Planner()
+    def __init__(self, *, redis_url: str | None = None, tenant_id: str = "default"):
+        self.planner = Planner(redis_url=redis_url, tenant_id=tenant_id) if redis_url else Planner(tenant_id=tenant_id)
 
     def is_connected(self) -> bool:
         return self.planner.is_connected()
@@ -174,9 +174,9 @@ class GlobalStateGoals:
     Goal source that reads the campaign GlobalState from Redis.
     """
 
-    def __init__(self, campaign_id: str, *, redis_url: str | None = None):
+    def __init__(self, campaign_id: str, *, redis_url: str | None = None, tenant_id: str = "default"):
         self.campaign_id = campaign_id
-        self.planner = Planner(redis_url=redis_url) if redis_url else Planner()
+        self.planner = Planner(redis_url=redis_url, tenant_id=tenant_id) if redis_url else Planner(tenant_id=tenant_id)
 
     def get(self) -> list[str]:
         state: GlobalState | None = self.planner.read_global_state(self.campaign_id)
@@ -199,6 +199,7 @@ class PerceptionSubsystem:
     def __init__(
         self,
         *,
+        tenant_id: str = "default",
         campaign_id: str,
         resource_uris: list[str] | None = None,
         poll_interval_s: float = 10.0,
@@ -209,15 +210,22 @@ class PerceptionSubsystem:
         task_sink: TaskSink | None = None,
     ):
         self.campaign_id = campaign_id
+        self.tenant_id = tenant_id
         self.resource_uris = resource_uris or ["news://latest"]
         self.poll_interval_s = poll_interval_s
 
         self.filter = SemanticFilter(relevance_threshold=relevance_threshold)
 
         self._explicit_goals = goals or []
-        self._goal_source = GlobalStateGoals(campaign_id, redis_url=redis_url) if use_global_state else None
+        self._goal_source = (
+            GlobalStateGoals(campaign_id, redis_url=redis_url, tenant_id=tenant_id) if use_global_state else None
+        )
 
-        self.sink = task_sink or (RedisTaskQueueSink(redis_url=redis_url) if redis_url or use_global_state else (lambda _t: None))
+        self.sink = task_sink or (
+            RedisTaskQueueSink(redis_url=redis_url, tenant_id=tenant_id)
+            if redis_url or use_global_state
+            else (lambda _t: None)
+        )
 
         # One poller per resource. For now, default to the in-repo news client.
         self.pollers: list[PerceptionPoller] = [

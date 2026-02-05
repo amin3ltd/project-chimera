@@ -25,6 +25,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     perception = sub.add_parser("perception", help="Run Perception subsystem (poll + filter + enqueue)")
     perception.add_argument("--campaign-id", default="default")
+    perception.add_argument("--tenant-id", default="default")
     perception.add_argument("--redis-url", default=None)
     perception.add_argument("--resource-uri", action="append", default=["news://latest"])
     perception.add_argument("--goal", action="append", default=[])
@@ -76,6 +77,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         from services.perception import PerceptionSubsystem
 
         subsystem = PerceptionSubsystem(
+            tenant_id=args.tenant_id,
             campaign_id=args.campaign_id,
             redis_url=args.redis_url,
             resource_uris=args.resource_uri,

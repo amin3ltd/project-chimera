@@ -7,10 +7,12 @@ Real Coinbase integration with budget governance.
 
 from __future__ import annotations
 
-import os
 import uuid
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
+
+from services.secrets import Secrets
+from services.tenancy import DEFAULT_TENANT_ID, RedisKeyspace
 
 # Coinbase AgentKit (optional import)
 try:
@@ -84,8 +86,9 @@ class CoinbaseWallet:
             return False
             
         try:
-            api_key = os.environ.get("CDP_API_KEY_NAME")
-            api_secret = os.environ.get("CDP_API_KEY_PRIVATE_KEY")
+            # Secrets are retrieved via the Secrets facade (env by default).
+            api_key = Secrets.get("CDP_API_KEY_NAME")
+            api_secret = Secrets.get("CDP_API_KEY_PRIVATE_KEY")
             
             if not api_key or not api_secret:
                 print("⚠️ Coinbase credentials not configured")
@@ -149,16 +152,16 @@ class CoinbaseWallet:
 class BudgetManager:
     """Budget governance manager."""
     
-    def __init__(self, redis_url: str = "redis://localhost:6379"):
+    def __init__(self, redis_url: str = "redis://localhost:6379", *, tenant_id: str = DEFAULT_TENANT_ID):
         """Initialize budget manager."""
         import redis
         self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
-        self.prefix = BUDGET_KEY_PREFIX
+        self.keyspace = RedisKeyspace(tenant_id=tenant_id)
         
     def get_daily_spend(self, agent_id: str) -> float:
         """Get current daily spend for agent."""
         try:
-            key = f"{self.prefix}{agent_id}"
+            key = self.keyspace.budget_key(agent_id)
             spend = self.redis.get(key)
             return float(spend) if spend else 0.0
         except Exception:
@@ -172,7 +175,7 @@ class BudgetManager:
     def record_spend(self, agent_id: str, amount: float) -> bool:
         """Record a transaction spend."""
         try:
-            key = f"{self.prefix}{agent_id}"
+            key = self.keyspace.budget_key(agent_id)
             self.redis.incrbyfloat(key, amount)
             from datetime import datetime, timedelta
             now = datetime.now()
@@ -191,15 +194,22 @@ class CommerceSkill:
     Commerce skill using Coinbase AgentKit.
     """
     
-    def __init__(self, agent_id: str, redis_url: str = "redis://localhost:6379"):
+    def __init__(
+        self,
+        agent_id: str,
+        redis_url: str = "redis://localhost:6379",
+        *,
+        tenant_id: str = DEFAULT_TENANT_ID,
+    ):
         """Initialize the commerce skill."""
         self.agent_id = agent_id
+        self.tenant_id = tenant_id
         self.name = "skill_commerce"
         self.version = "1.0.0"
         
         self._wallet = CoinbaseWallet(agent_id)
         self._wallet_initialized = self._wallet.initialize()
-        self._budget_manager = BudgetManager(redis_url)
+        self._budget_manager = BudgetManager(redis_url, tenant_id=tenant_id)
         self._daily_spend = 0.0
     
     def execute(self, action: str, to_address: str = None,

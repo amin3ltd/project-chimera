@@ -13,18 +13,18 @@ from typing import Optional
 from pydantic import BaseModel, Field
 import redis
 
+from services.tenancy import DEFAULT_TENANT_ID, RedisKeyspace
+
 
 # Redis Configuration
 REDIS_URL = "redis://localhost:6379"
-TASK_QUEUE = "task_queue"
-REVIEW_QUEUE = "review_queue"
-HITL_QUEUE = "hitl_queue"
 
 
 # Result Schema
 class TaskResult(BaseModel):
     """Result from Worker execution."""
     task_id: str
+    tenant_id: str = Field(default=DEFAULT_TENANT_ID, description="Tenant identifier for isolation")
     status: str = "success"  # success | error
     output: dict = Field(default_factory=dict)
     confidence_score: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -51,7 +51,13 @@ class Worker:
     - Stateless operation for horizontal scaling
     """
     
-    def __init__(self, worker_id: str, redis_url: str = REDIS_URL):
+    def __init__(
+        self,
+        worker_id: str,
+        redis_url: str = REDIS_URL,
+        *,
+        tenant_id: str = DEFAULT_TENANT_ID,
+    ):
         """
         Initialize worker.
         
@@ -61,9 +67,10 @@ class Worker:
         """
         self.worker_id = worker_id
         self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
-        self.task_queue = TASK_QUEUE
-        self.review_queue = REVIEW_QUEUE
-        self.hitl_queue = HITL_QUEUE
+        self.keyspace = RedisKeyspace(tenant_id=tenant_id)
+        self.task_queue = self.keyspace.task_queue()
+        self.review_queue = self.keyspace.review_queue()
+        self.hitl_queue = self.keyspace.hitl_queue()
         
     def is_connected(self) -> bool:
         """Check Redis connection."""
@@ -114,33 +121,36 @@ class Worker:
         """
         task_id = task.get("task_id", str(uuid.uuid4()))
         task_type = task.get("task_type", "unknown")
+        tenant_id = task.get("tenant_id", self.keyspace.tenant_id)
         
         try:
             # Route to appropriate handler
             if task_type == "generate_content":
-                return self._execute_generate_content(task)
+                return self._execute_generate_content(task, tenant_id=tenant_id)
             elif task_type == "analyze_trends":
-                return self._execute_analyze_trends(task)
+                return self._execute_analyze_trends(task, tenant_id=tenant_id)
             elif task_type == "post_content":
-                return self._execute_post_content(task)
+                return self._execute_post_content(task, tenant_id=tenant_id)
             elif task_type == "reply_comment":
-                return self._execute_reply_comment(task)
+                return self._execute_reply_comment(task, tenant_id=tenant_id)
             elif task_type == "execute_transaction":
-                return self._execute_transaction(task)
+                return self._execute_transaction(task, tenant_id=tenant_id)
             else:
                 return TaskResult(
                     task_id=task_id,
+                    tenant_id=tenant_id,
                     status="error",
                     error_message=f"Unknown task_type: {task_type}"
                 )
         except Exception as e:
             return TaskResult(
                 task_id=task_id,
+                tenant_id=tenant_id,
                 status="error",
                 error_message=str(e)
             )
     
-    def _execute_generate_content(self, task: dict) -> TaskResult:
+    def _execute_generate_content(self, task: dict, *, tenant_id: str) -> TaskResult:
         """Execute content generation task."""
         from skills.skill_generate_image import GenerateImageSkill
         from skills.skill_post_content import PostContentSkill
@@ -158,6 +168,7 @@ class Worker:
             )
             return TaskResult(
                 task_id=task.get("task_id"),
+                tenant_id=tenant_id,
                 status=result.status,
                 output={
                     "content_type": "image",
@@ -176,6 +187,7 @@ class Worker:
             )
             return TaskResult(
                 task_id=task.get("task_id"),
+                tenant_id=tenant_id,
                 status=result.status,
                 output={
                     "content_type": "text",
@@ -185,7 +197,7 @@ class Worker:
                 confidence_score=0.88,
             )
     
-    def _execute_analyze_trends(self, task: dict) -> TaskResult:
+    def _execute_analyze_trends(self, task: dict, *, tenant_id: str) -> TaskResult:
         """Execute trend analysis task."""
         from skills.skill_analyze_trends import AnalyzeTrendsSkill
         
@@ -200,6 +212,7 @@ class Worker:
         
         return TaskResult(
             task_id=task.get("task_id"),
+            tenant_id=tenant_id,
             status=result.status,
             output={
                 "trends": [t.model_dump() for t in result.trends],
@@ -208,7 +221,7 @@ class Worker:
             confidence_score=0.90,
         )
     
-    def _execute_post_content(self, task: dict) -> TaskResult:
+    def _execute_post_content(self, task: dict, *, tenant_id: str) -> TaskResult:
         """Execute content posting task."""
         from skills.skill_post_content import PostContentSkill
         
@@ -222,6 +235,7 @@ class Worker:
         
         return TaskResult(
             task_id=task.get("task_id"),
+            tenant_id=tenant_id,
             status=result.status,
             output={
                 "post_id": result.post_id,
@@ -230,11 +244,12 @@ class Worker:
             confidence_score=0.85,
         )
     
-    def _execute_reply_comment(self, task: dict) -> TaskResult:
+    def _execute_reply_comment(self, task: dict, *, tenant_id: str) -> TaskResult:
         """Execute comment reply task."""
         # TODO: Implement comment reply logic
         return TaskResult(
             task_id=task.get("task_id"),
+            tenant_id=tenant_id,
             status="success",
             output={
                 "reply_text": "Reply generated",
@@ -243,7 +258,7 @@ class Worker:
             confidence_score=0.80,
         )
     
-    def _execute_transaction(self, task: dict) -> TaskResult:
+    def _execute_transaction(self, task: dict, *, tenant_id: str) -> TaskResult:
         """Execute commerce transaction task."""
         from skills.skill_commerce import CommerceSkill
         
@@ -260,6 +275,7 @@ class Worker:
         
         return TaskResult(
             task_id=task.get("task_id"),
+            tenant_id=tenant_id,
             status="success" if result.status == "success" else "error",
             output={
                 "transaction_hash": result.transaction_hash,
