@@ -6,7 +6,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 from mcp.server import FastMCP
 
@@ -93,20 +93,25 @@ def store_memory(
 )
 def search_memory(agent_id: str, query: str, limit: int = 5) -> dict[str, Any]:
     items = [i for i in _load() if i.agent_id == agent_id]
-    scored = sorted(
-        (
-            {
-                "memory_id": i.memory_id,
-                "memory_type": i.memory_type,
-                "content": i.content,
-                "created_at": i.created_at,
-                "score": _score(query, i.content) * (0.7 + 0.3 * i.importance_score),
-            }
-            for i in items
-        ),
-        key=lambda d: d["score"],
-        reverse=True,
-    )
+
+    class SearchResult(TypedDict):
+        memory_id: str
+        memory_type: str
+        content: str
+        created_at: str
+        score: float
+
+    scored: list[SearchResult] = [
+        {
+            "memory_id": i.memory_id,
+            "memory_type": i.memory_type,
+            "content": i.content,
+            "created_at": i.created_at,
+            "score": float(_score(query, i.content) * (0.7 + 0.3 * i.importance_score)),
+        }
+        for i in items
+    ]
+    scored.sort(key=lambda d: d["score"], reverse=True)
     return {"status": "success", "results": scored[: max(1, int(limit))]}
 
 

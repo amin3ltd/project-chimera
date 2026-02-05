@@ -460,6 +460,8 @@ def create_coinbase_mcp_client() -> MCPClient:
 
 if __name__ == "__main__":
     # Demo
+    import asyncio
+
     async def demo():
         print("=== MCP Client Demo ===\n")
         

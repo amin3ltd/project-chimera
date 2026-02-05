@@ -112,9 +112,8 @@ def text_to_simple_pdf(text: str, out_path: Path) -> None:
         return len(objects)
 
     # Catalog (1) + Pages (2) + Font (3)
-    catalog_id = add_obj("<< /Type /Catalog /Pages 2 0 R >>")
-    pages_id = 2  # placeholder; real object 2
-    font_id = add_obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+    add_obj("<< /Type /Catalog /Pages 2 0 R >>")
+    add_obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
 
     # Reserve pages object as object #2 by inserting later
     # (we already added catalog and font, so insert pages next).
@@ -142,7 +141,7 @@ def text_to_simple_pdf(text: str, out_path: Path) -> None:
         line_h = 13
         parts: list[str] = []
         parts.append("BT")
-        parts.append(f"/F1 11 Tf")
+        parts.append("/F1 11 Tf")
         parts.append(f"{x} {y_start} Td")
         for idx, ln in enumerate(page_lines_list):
             if idx > 0:

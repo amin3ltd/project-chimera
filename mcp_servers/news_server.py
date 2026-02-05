@@ -5,7 +5,7 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 from mcp.server import FastMCP
 
@@ -67,6 +67,13 @@ def _score_topic(item: NewsItem, topic: str) -> float:
     return overlap / max(1, len(topic_tokens))
 
 
+class TrendItem(TypedDict):
+    topic: str
+    score: float
+    source: str | None
+    url: str | None
+
+
 mcp = FastMCP("chimera-news")
 
 _ITEMS: list[NewsItem] = _load_items()
@@ -96,19 +103,16 @@ def latest() -> str:
 )
 def fetch_trends(topic: str = "technology", limit: int = 10, country: str = "US") -> dict[str, Any]:
     # This tool is intentionally simple but real: it derives scored trends from headlines.
-    scored = sorted(
-        (
-            {
-                "topic": it.title,
-                "score": _score_topic(it, topic),
-                "source": it.source,
-                "url": it.url,
-            }
-            for it in _ITEMS
-        ),
-        key=lambda d: d["score"],
-        reverse=True,
-    )
+    scored: list[TrendItem] = [
+        {
+            "topic": it.title,
+            "score": float(_score_topic(it, topic)),
+            "source": it.source,
+            "url": it.url,
+        }
+        for it in _ITEMS
+    ]
+    scored.sort(key=lambda d: d["score"], reverse=True)
     # Return only items with some overlap, but always provide something for demo
     filtered = [s for s in scored if s["score"] > 0] or scored
     return {"topic": topic, "country": country, "trends": filtered[: max(1, int(limit))]}

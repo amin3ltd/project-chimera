@@ -15,10 +15,10 @@ from __future__ import annotations
 import asyncio
 import re
 from dataclasses import dataclass
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable
 
 from services.mcp_client import MCPClient, create_news_mcp_client
-from services.planner import Task
+from services.planner import GlobalState, Planner, Task
 
 
 def _tokenize(text: str) -> set[str]:
@@ -144,6 +144,123 @@ class PerceptionPoller:
             while True:
                 await self.poll_once(goals)
                 await asyncio.sleep(poll_interval_s)
+        finally:
+            await self.aclose()
+
+
+class RedisTaskQueueSink:
+    """
+    Task sink that enqueues tasks into the Planner Redis priority queue.
+
+    This makes the Perception system a runnable subsystem that feeds the swarm.
+    """
+
+    def __init__(self, *, redis_url: str | None = None):
+        self.planner = Planner(redis_url=redis_url) if redis_url else Planner()
+
+    def is_connected(self) -> bool:
+        return self.planner.is_connected()
+
+    def __call__(self, task: Task) -> None:
+        # Best-effort enqueue; do not crash the perception loop.
+        try:
+            self.planner.push_task(task)
+        except Exception as e:
+            print(f"Perception sink enqueue error: {e}")
+
+
+class GlobalStateGoals:
+    """
+    Goal source that reads the campaign GlobalState from Redis.
+    """
+
+    def __init__(self, campaign_id: str, *, redis_url: str | None = None):
+        self.campaign_id = campaign_id
+        self.planner = Planner(redis_url=redis_url) if redis_url else Planner()
+
+    def get(self) -> list[str]:
+        state: GlobalState | None = self.planner.read_global_state(self.campaign_id)
+        if not state:
+            return []
+        if state.status != "active":
+            return []
+        return list(state.goals)
+
+
+class PerceptionSubsystem:
+    """
+    Continuous resource monitoring + semantic filtering (SRS FR 2.0 / FR 2.1).
+
+    - Polls one or more MCP resources on an interval
+    - Applies semantic filtering against current campaign goals
+    - Emits tasks into Redis via the Planner task queue (optional)
+    """
+
+    def __init__(
+        self,
+        *,
+        campaign_id: str,
+        resource_uris: list[str] | None = None,
+        poll_interval_s: float = 10.0,
+        relevance_threshold: float = 0.75,
+        redis_url: str | None = None,
+        goals: list[str] | None = None,
+        use_global_state: bool = True,
+        task_sink: TaskSink | None = None,
+    ):
+        self.campaign_id = campaign_id
+        self.resource_uris = resource_uris or ["news://latest"]
+        self.poll_interval_s = poll_interval_s
+
+        self.filter = SemanticFilter(relevance_threshold=relevance_threshold)
+
+        self._explicit_goals = goals or []
+        self._goal_source = GlobalStateGoals(campaign_id, redis_url=redis_url) if use_global_state else None
+
+        self.sink = task_sink or (RedisTaskQueueSink(redis_url=redis_url) if redis_url or use_global_state else (lambda _t: None))
+
+        # One poller per resource. For now, default to the in-repo news client.
+        self.pollers: list[PerceptionPoller] = [
+            PerceptionPoller(
+                mcp_client=create_news_mcp_client(),
+                resource_uri=uri,
+                semantic_filter=self.filter,
+                task_sink=self.sink,
+                campaign_id=campaign_id,
+            )
+            for uri in self.resource_uris
+        ]
+
+    def _current_goals(self) -> list[str]:
+        if self._goal_source is not None:
+            goals = self._goal_source.get()
+            if goals:
+                return goals
+        return self._explicit_goals
+
+    async def start(self) -> None:
+        # Connect all MCP clients.
+        for p in self.pollers:
+            await p.start()
+
+    async def aclose(self) -> None:
+        for p in self.pollers:
+            await p.aclose()
+
+    async def run(self) -> None:
+        await self.start()
+        try:
+            while True:
+                goals = self._current_goals()
+                if not goals:
+                    # No goals available; avoid spamming tasks.
+                    await asyncio.sleep(self.poll_interval_s)
+                    continue
+
+                for p in self.pollers:
+                    await p.poll_once(goals)
+
+                await asyncio.sleep(self.poll_interval_s)
         finally:
             await self.aclose()
 
