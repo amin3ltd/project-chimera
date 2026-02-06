@@ -9,6 +9,23 @@
 
 </div>
 
+## Video Introduction To The Project
+
+<p align="center">
+  <a href="https://youtu.be/zOQEpwXMMl">
+    <img
+      src="https://img.youtube.com/vi/zOQEpwXMMlc/maxresdefault.jpg"
+      alt="Introduction Video"
+      width="800"
+      style="border: 1px solid #ccc;"
+    />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/zOQEpwXMMl">▶️ Watch on YouTube</a>
+</p>
+
 ## Overview
 
 Project Chimera is an autonomous AI influencer system built on **Spec-Driven Development (SDD)**, **FastRender Swarm Architecture**, and **Model Context Protocol (MCP)**. It enables AI agents to:
