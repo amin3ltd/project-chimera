@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/zOQEpwXMMl">▶️ Watch on YouTube</a>
+  <a href="https://youtu.be/zOQEpwXMMlc">▶️ Watch on YouTube</a>
 </p>
 
 ## Overview
